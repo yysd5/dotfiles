@@ -3,19 +3,85 @@ name: git-committer
 description: Gitのcommitについてのガイドライン。commitを作成する前に使用する。
 ---
 
-# Gitコミット標準
+# Gitのcommitについてのガイドライン
 
-## Conventional Commits
+## 良い変更説明を書く
 
-以下のようなConventional Commitsの作法に従ったコミットメッセージを作成すること。
+### コミットメッセージを適切に書く
 
-```bash
-# フォーマット: <type>(<scope>): <subject>
-git commit -m "feat(auth): add JWT token refresh"
-git commit -m "fix(api): handle null response correctly"
-git commit -m "docs(readme): update installation steps"
-git commit -m "perf(db): optimize query performance"
-git commit -m "refactor(core): extract validation logic"
+- コミットメッセージはコミュニケーションであり、チームメンバーや将来の自分のためにもきちんと書くと良い
+- その差分に対して、変更意図などコード差分に現れない自分の思考を伝える
+
+#### Gitのコミットメッセージの標準: 50/72ルー
+
+- 50/72ルールとは
+    - サマリーを現在形で50文字以内で書く(日本語なら25文字くらい)
+    - それ以上のテキストを書く場合は、2行目を空行にする
+    - 好きなだけテキストを追加してよいが、幅が72文字以内になるようにフォーマットする
+- 50/72ルールの利点
+    - git log --onelineやGitHub, Bitbucketなど各ツールでコミットの一覧を見るときに見やすい
+    - 現在形で書くことで行が短くなりやすい（見やすくなる）
+- コミットメッセージの内容
+    - コードが自明なときはサマリーだけで良い
+    - 少しでも疑問が浮かびそうなものは、コンテキストを追加する
+    - コミットの差分には何をどのように変更したのかの情報がすでに含まれているので、コミットメッセージではそれよりもなぜその変更をしたのか、なぜその形になっているのかを説明するのに最適
+
+#### あまり良くないコミットメッセージ例
+
+```text
+ログイン周りの修正
+ログイン試行回数制限の実装。ハッカー対策のため。あとパスワードリセット機能のバグ修正もした。関連するテストも更新。
+```
+
+- サマリーが曖昧。コミットメッセージだけでは具体的な変更内容がわからないので、主要な変更を明確に示すべき
+- 2行目が空行になっていないのでサマリーと詳細の区別がつきづらい
+- 横に長過ぎるので可読性が悪い
+- 複数の独立した変更が一つのコミットに含まれている
+- 説明不足な部分がある
+    - 「ハッカー対策のため」という説明は簡素すぎる。どのようなセキュリティ向上が期待できるのかより具体的に書くべき
+
+その他、よくある改善の余地のある例
+
+- 「レビュー指摘対応」
+    - コメントがいくつも有る場合などは、どのコメントに対するものかわからないのでレビュアーは何の指摘についてのものか考えたりしないといけない場合がある。また、あとから見ると何の修正かわからない
+- 「バグ修正」
+    - これだけではレビュアーや将来のコード考古学者にとっては助けにならない
+    - 何のバグを修正したのかはコミットの中身を見るまでわからない
+
+#### 良いコミットメッセージ例
+
+```text
+ログイン試行回数の制限を実装
+
+一定時間内のユーザーごとのログイン試行回数を
+制限する機能を追加。これにより、ブルートフォース
+攻撃を防ぎ、システム全体のセキュリティを向上させる。
+```
+
+- 適切なコミット粒度
+    - 一つのことしかしていないので変更の目的と差分が完全に対応する
+    - 一つのコミットで複数の異なる変更を行っていないので変更を容易に戻したり別のブランチに適用したりできる
+- 変更理由を説明している
+    - 将来のメンテナンス時に役立つ(また当該部分を変更したいと思った場合に、そうして良いのかの判断に使える)
+- 50/72ルールに沿っており様々なGitツールでの可読性が高い
+
+## コミットメッセージにprefixを付ける[7]
+
+- コミットメッセージにprefixを付けると、どんな変更なのか瞬時に分かるのでレビューしやすくなる
+    - 例：「feat: ◯◯を出来るようにする」
+    - 例えばコミットの一覧を眺めたときに今見たいのはどれかなどがすぐ分かりやすい
+- 開発者がコミットの粒度を意識するようになる
+- （prefixを正しく付けることは本質ではなく、commitの単位を意識したり見やすくする意識付けに効果がある（なので分類で悩みすぎない））
+
+```
+feat: A new feature
+fix: A bug fix
+docs: Documentation only changes
+style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+refactor: A code change that neither fixes a bug nor adds a feature
+perf: A code change that improves performance
+test: Adding missing or correcting existing tests
+chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
 ```
 
 ## コミットその他
@@ -27,4 +93,3 @@ git commit -m "refactor(core): extract validation logic"
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
-
