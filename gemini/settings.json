@@ -39,7 +39,12 @@
   "general": {
     "preferredEditor": "vim",
     "previewFeatures": true,
-    "vimMode": true
+    "vimMode": true,
+    "sessionRetention": {
+      "warningAcknowledged": true,
+      "enabled": true,
+      "maxAge": "120d"
+    }
   },
   "security": {
     "auth": {
