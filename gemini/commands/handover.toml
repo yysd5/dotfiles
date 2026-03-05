@@ -8,6 +8,7 @@ prompt = """
 1. 今回のセッションで行ったことを振り返る。
 2. 以下の構成で HANDOVER.md をプロジェクトルートに生成する。
 3. 既に HANDOVER.md が存在する場合は上書きする。
+markdown-writerスキルを使用する。
 
 ## HANDOVER.md の構成
 
