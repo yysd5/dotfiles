@@ -1,4 +1,4 @@
-description = "1日の業務を終了する"
+description = "1日の業務を終了する (引数: 補足事項)"
 
 prompt = """
 
