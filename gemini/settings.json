@@ -1,27 +1,5 @@
 {
   "tools": {
-    "exclude": [
-      "run_shell_command(rm -rf)",
-      "run_shell_command(sudo dd)",
-      "run_shell_command(sudo mkfs)",
-      "run_shell_command(sudo fdisk)",
-      "run_shell_command(sudo mount)",
-      "run_shell_command(sudo umount)",
-      "run_shell_command(dd)",
-      "run_shell_command(mkfs)",
-      "run_shell_command(fdisk)",
-      "run_shell_command(chmod 777 /*)",
-      "run_shell_command(chown root)",
-      "run_shell_command(sudo chmod 777)",
-      "run_shell_command(sudo chown)",
-      "run_shell_command(sudo -i)",
-      "run_shell_command(sudo su)",
-      "run_shell_command(docker system prune -af)",
-      "run_shell_command(npm publish)",
-      "run_shell_command(cargo publish)",
-      "run_shell_command(git commit)",
-      "run_shell_command(git push)"
-    ],
     "shell": {
       "showColor": true
     }

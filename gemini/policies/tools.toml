@@ -1,0 +1,27 @@
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = [
+  "rm -rf",
+  "sudo dd",
+  "sudo mkfs",
+  "sudo fdisk",
+  "sudo mount",
+  "sudo umount",
+  "dd",
+  "mkfs",
+  "fdisk",
+  "chmod 777 /*",
+  "chown root",
+  "sudo chmod 777",
+  "sudo chown",
+  "sudo -i",
+  "sudo su",
+  "docker system prune -af",
+  "npm publish",
+  "cargo publish",
+  "git commit",
+  "git push"
+]
+decision = "deny"
+priority = 100
+denyMessage = "セキュリティ制限：このコマンドは Gemini CLI 経由での実行が禁止されています。"
