@@ -130,7 +130,8 @@
       "Write(/etc/sudoers)"
     ]
   },
+  "language": "日本語",
   "theme": "dark",
   "preferredNotifChannel": "terminal_bell",
-  "language": "日本語"
+  "editorMode": "vim"
 }
