@@ -1,6 +1,6 @@
 {
   "apiKeyHelper": "",
-  "cleanupPeriodDays": 30,
+  "cleanupPeriodDays": 1000,
   "env": {
     "DISABLE_COST_WARNINGS": "0",
     "BASH_DEFAULT_TIMEOUT_MS": "300000",
