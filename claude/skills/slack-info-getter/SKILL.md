@@ -1,6 +1,7 @@
 ---
 name: slack-info-getter
 description: Slackから情報を得る時のガイドライン
+user-invocable: false
 ---
 
 # slack-info-getter
