@@ -1,6 +1,7 @@
 ---
 name: task-reporter
 description: 行った作業のレポートを作成する。
+user-invocable: false
 ---
 
 # task-reporter
