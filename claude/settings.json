@@ -21,6 +21,7 @@
       "Bash(find * -exec cat *)",
       "Bash(find:*)",
       "Bash(fzf:*)",
+      "Bash(git diff *)",
       "Bash(git status *)",
       "Bash(git log *)",
       "Bash(grep:*)",
