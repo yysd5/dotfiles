@@ -9,3 +9,11 @@ user-invocable: false
 ## ドキュメント
 
 - docstringはGoogleスタイルにする
+
+## パッケージマネージャー
+
+- uvを使用する
+
+## テスト
+
+- pytestを使用する
