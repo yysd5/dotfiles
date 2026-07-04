@@ -159,6 +159,10 @@
             "Write(~/.ssh/id_*)"
         ]
     },
+    "statusLine": {
+        "type": "command",
+        "command": "~/.claude/statusline.sh"
+    },
     "language": "日本語",
     "theme": "dark",
     "editorMode": "vim",

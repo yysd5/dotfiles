@@ -102,6 +102,7 @@ node
 openjdk@21
 ripgrep
 sshs
+terminal-notifier
 tmux
 tree
 EOF
@@ -146,6 +147,7 @@ install_claude() {
 
   backup_and_link "$HOME/.claude/CLAUDE.md" "$DOTFILES_DIR/claude/CLAUDE.md"
   backup_and_link "$HOME/.claude/settings.json" "$DOTFILES_DIR/claude/settings.json"
+  backup_and_link "$HOME/.claude/statusline.sh" "$DOTFILES_DIR/claude/statusline.sh"
 
   if [ -d "$DOTFILES_DIR/claude/skills" ]; then
     log "Linking Claude skills directory..."
