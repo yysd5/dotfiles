@@ -30,7 +30,7 @@ for ((i = 0; i < bar_len; i++)); do
   [ "$i" -lt "$filled" ] && bar+="█" || bar+="░"
 done
 c=$(color_for "$ctx_used")
-line2="🧠 CTX \033[${c}m${bar} ${ctx_free}% free\033[0m"
+line2="CTX \033[${c}m${bar} ${ctx_free}% free\033[0m"
 
 # 5時間レートリミット (サブスクプランのセッションのみ値が来る)
 rl5=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' | cut -d. -f1)
