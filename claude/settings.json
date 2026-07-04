@@ -7,30 +7,30 @@
     "BASH_MAX_TIMEOUT_MS": "1200000"
   },
   "includeCoAuthoredBy": false,
-  "permissions": {
-    "allow": [
-      "Bash(awk:*)",
-      "Bash(cat:*)",
-      "Bash(cd:*)",
-      "Bash(curl:*)",
-      "Bash(date:*)",
-      "Bash(dig:*)",
-      "Bash(echo:*)",
-      "Bash(env)",
-      "Bash(export:*)",
-      "Bash(find * -exec cat *)",
-      "Bash(find:*)",
-      "Bash(fzf:*)",
-      "Bash(git diff *)",
-      "Bash(git status *)",
-      "Bash(git log *)",
-      "Bash(grep:*)",
-      "Bash(head:*)",
-      "Bash(history)",
-      "Bash(jq:*)",
-      "Bash(ln:*)",
-      "Bash(ls:*)",
-      "Bash(lsof:*)",
+    "hooks": {
+        "Notification": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "terminal-notifier -title 'Claude Code' -message '入力待ちです' -sound Glass"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "terminal-notifier -title 'Claude Code' -message 'タスク完了' -sound Glass"
+                    }
+                ]
+            }
+        ]
+    },
       "Bash(mkdir:*)",
       "Bash(mvn compile *)",
       "Bash(mvn test *)",
