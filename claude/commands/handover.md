@@ -8,6 +8,8 @@
 2. 以下の構成で HANDOVER.md をプロジェクトルートに生成する（markdown-writerスキルを使用する）
 3. 既に HANDOVER.md が存在する場合は上書きする（前回分は不要）
 
+※ HANDOVER.mdはgit commit不要。
+
 ## HANDOVER.md の構成
 
 必ず以下のセクションを含める
