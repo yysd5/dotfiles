@@ -194,6 +194,19 @@ install_gemini() {
   fi
 }
 
+install_antigravity() {
+  log "Setting up Antigravity CLI config..."
+  mkdir -p "$HOME/.gemini/antigravity-cli"
+
+  backup_and_link "$HOME/.gemini/antigravity-cli/settings.json" "$DOTFILES_DIR/gemini/antigravity-cli/settings.json"
+  backup_and_link "$HOME/.gemini/antigravity-cli/statusline.py" "$DOTFILES_DIR/gemini/antigravity-cli/statusline.py"
+
+  if [ -d "$DOTFILES_DIR/gemini/antigravity-cli/skills" ]; then
+    log "Linking Antigravity skills directory..."
+    backup_and_link "$HOME/.gemini/antigravity-cli/skills" "$DOTFILES_DIR/gemini/antigravity-cli/skills"
+  fi
+}
+
 install_codex() {
   log "Setting up Codex CLI config..."
   mkdir -p "$HOME/.codex"
@@ -268,7 +281,7 @@ install_ghostty() {
 
 main() {
   if [ $# -eq 0 ]; then
-    echo "Usage: $0 [all|zsh|nvim|tmux|lazygit|brew|aqua|gitconfig|iterm2|claude|gemini|codex|intellij|npm|obsidian|amazonq|rovodev|vrapper|ghostty]"
+    echo "Usage: $0 [all|zsh|nvim|tmux|lazygit|brew|aqua|gitconfig|iterm2|claude|gemini|antigravity-cli|codex|intellij|npm|obsidian|amazonq|rovodev|vrapper|ghostty]"
     exit 1
   fi
 
@@ -308,6 +321,7 @@ main() {
     iterm2) install_iterm2 ;;
     claude) install_claude ;;
     gemini) install_gemini ;;
+    antigravity-cli) install_antigravity ;;
     codex) install_codex ;;
     intellij) install_intellij ;;
     npm) install_npm_global ;;

@@ -1,4 +1,4 @@
-.PHONY: all help brew zsh tmux aqua gitconfig lazygit iterm2 nvim claude gemini codex intellij npm obsidian amazonq rovodev vrapper ghostty
+.PHONY: all help brew zsh tmux aqua gitconfig lazygit iterm2 nvim claude gemini antigravity-cli codex intellij npm obsidian amazonq rovodev vrapper ghostty
 
 TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 
@@ -34,6 +34,9 @@ claude: ## Setup Claude config (~/.claude)
 
 gemini: ## Setup Gemini CLI config (~/.gemini)
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh gemini
+
+antigravity-cli: ## Setup Antigravity CLI config (~/.gemini/antigravity-cli)
+	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh antigravity-cli
 
 codex: ## Setup Codex CLI config (~/.codex)
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh codex

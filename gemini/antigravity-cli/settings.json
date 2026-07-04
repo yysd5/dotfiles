@@ -1,0 +1,43 @@
+{
+  "tools": {
+    "shell": {
+      "showColor": true
+    }
+  },
+  "mcpServers": {},
+  "general": {
+    "preferredEditor": "vim",
+    "previewFeatures": true,
+    "vimMode": true,
+    "sessionRetention": {
+      "warningAcknowledged": true,
+      "enabled": true,
+      "maxAge": "120d"
+    },
+    "plan": {
+      "enabled": true
+    }
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "statusLine": {
+    "enabled": true,
+    "command": "/Users/y_yoshida/.gemini/antigravity-cli/statusline.py"
+  },
+  "ui": {
+    "theme": "ANSI",
+    "footer": {
+      "hideContextPercentage": false
+    },
+    "showLineNumbers": false
+  },
+  "experimental": {
+    "enableAgents": true
+  },
+  "agents": {
+    "overrides": {}
+  }
+}
