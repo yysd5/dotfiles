@@ -1,3 +1,7 @@
+
+# Kiro CLI pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -202,11 +206,17 @@ if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-clou
 
 # -------------------- Java --------------------
 # export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
-export JAVA_HOME=$(/usr/libexec/java_home -v21)
+#export JAVA_HOME=$(/usr/libexec/java_home -v21)
+#export JAVA_HOME=$(/usr/libexec/java_home -v24)
+export JAVA_HOME=$(/usr/libexec/java_home -v25)
 export PATH="$JAVA_HOME/bin:$PATH"
 
 alias use_java14='export JAVA_HOME=$(/usr/libexec/java_home -v14); export PATH="$JAVA_HOME/bin:$PATH"'
 alias use_java21='export JAVA_HOME=$(/usr/libexec/java_home -v21); export PATH="$JAVA_HOME/bin:$PATH"'
+alias use_java24='export JAVA_HOME=$(/usr/libexec/java_home -v24); export PATH="$JAVA_HOME/bin:$PATH"'
+alias use_java25='export JAVA_HOME=$(/usr/libexec/java_home -v25); export PATH="$JAVA_HOME/bin:$PATH"'
+
+# MAVEN_OPTS(プロキシ認証情報を含む)は~/.zshrc.localで定義する
 
 # -------------------- aqua --------------------
 export PATH="${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH"
@@ -268,7 +278,6 @@ alias ggpushf='git push --force-with-lease origin "$(git_current_branch)"'
 
 alias gsh='git show'
 
-
 alias gsta='git stash'
 alias gstp='git stash pop'
 
@@ -276,3 +285,6 @@ alias gst='git status'
 
 # マシン固有のシークレット等(git管理外)を読み込む
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+# Kiro CLI post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
