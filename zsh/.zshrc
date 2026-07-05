@@ -273,3 +273,6 @@ alias gsta='git stash'
 alias gstp='git stash pop'
 
 alias gst='git status'
+
+# マシン固有のシークレット等(git管理外)を読み込む
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
