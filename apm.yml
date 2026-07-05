@@ -9,6 +9,7 @@ author: yysd5
 targets:
 - claude
 - gemini
+- codex
 dependencies:
   apm: []
   mcp: []

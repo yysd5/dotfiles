@@ -1,7 +1,9 @@
 ---
 name: start-work-day
-description: 1日の業務を開始する
+description: "1日の業務を開始する"
 ---
+
+# 1日の業務を開始する
 
 1日の業務を開始する。
 

@@ -1,6 +1,6 @@
 ---
 name: create-manual-integration-test-cases
-description: ローカルの現在のブランチとdevelopのコミット済みの差分に対して手動結合テストケースの作成を行う。
+description: "ローカルの現在のブランチとdevelopのコミット済みの差分に対して手動結合テストケースの作成を行う。"
 ---
 
 ローカルの現在のブランチとdevelopブランチのコミット済みの差分に対して手動結合テストケースの作成を行ってください。
