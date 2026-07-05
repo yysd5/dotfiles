@@ -4,16 +4,6 @@
       "showColor": true
     }
   },
-  "mcpServers": {
-    "atlassian": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.atlassian.com/v1/mcp/authv2"
-      ]
-    }
-  },
   "general": {
     "preferredEditor": "vim",
     "previewFeatures": true,
@@ -22,6 +12,10 @@
       "warningAcknowledged": true,
       "enabled": true,
       "maxAge": "120d"
+    },
+    "enableAutoUpdate": true,
+    "plan": {
+      "enabled": true
     }
   },
   "security": {
@@ -37,7 +31,16 @@
     "showLineNumbers": false
   },
   "experimental": {
-    "plan": true,
-    "enableAgents": true
+    "enableAgents": true,
+    "contextManagement": true
+  },
+  "agents": {
+    "overrides": {}
+  },
+  "telemetry": {
+    "enabled": true,
+    "target": "gcp",
+    "useCliAuth": true,
+    "logPrompts": true
   }
 }

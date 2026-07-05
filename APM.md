@@ -3,6 +3,7 @@
 Claude Code / Gemini CLI / Antigravity CLI / Codex CLIのSkill・Command・Agentを、
 [microsoft/apm](https://github.com/microsoft/apm) を使って
 `.apm/` 配下に一元管理している。
+MCPサーバーはapm管理の対象外([MCPサーバーの管理方針](#mcpサーバーの管理方針)を参照)。
 
 このドキュメントでは、アーキテクチャと日常的な追加・削除フローを説明する。
 
@@ -46,11 +47,11 @@ dotfiles/
 
 ### デプロイ先(apm installで自動生成される)
 
-| 種類 | Claude Code | Gemini CLI | Codex CLI |
-| --- | --- | --- | --- |
-| Skill | `~/.claude/skills/<name>/SKILL.md` | `~/.agents/skills/<name>/SKILL.md`(公式エイリアス) | `~/.agents/skills/<name>/SKILL.md` |
-| Command | `~/.claude/commands/<name>.md` | `~/.gemini/commands/<name>.toml` | (非対応) |
-| Agent | `~/.claude/agents/<name>.md` | (今回は未使用) | `~/.codex/agents/<name>.md` |
+| 種類    | Claude Code                        | Gemini CLI                                         | Codex CLI                          |
+| ------- | ---------------------------------- | -------------------------------------------------- | ---------------------------------- |
+| Skill   | `~/.claude/skills/<name>/SKILL.md` | `~/.agents/skills/<name>/SKILL.md`(公式エイリアス) | `~/.agents/skills/<name>/SKILL.md` |
+| Command | `~/.claude/commands/<name>.md`     | `~/.gemini/commands/<name>.toml`                   | (非対応)                           |
+| Agent   | `~/.claude/agents/<name>.md`       | (今回は未使用)                                     | `~/.codex/agents/<name>.md`        |
 
 `~/.agents/skills/` はGemini CLI公式サポートのエイリアスで、
 `~/.gemini/skills/` より優先される。
@@ -134,6 +135,7 @@ apm --version
     ---
     description: コマンドピッカーに表示される説明(必須)
     ---
+
     (プロンプト本文)
     ```
 
@@ -153,6 +155,82 @@ apm --version
 1. `.apm/prompts/<name>.prompt.md` を削除する
 2. 再度 `apm install --root "$HOME" --target claude,gemini` を実行する
    (stale filesとして自動削除される)
+
+## MCPサーバーの管理方針
+
+MCPサーバーは**apm管理の対象外**とし、各マシンのローカル設定
+(git管理外)で管理する。
+
+### 検討の経緯(2026-07-05)
+
+`apm.yml`の`dependencies.mcp:`への一元化を実装・実機検証したが、
+以下の理由で採用を見送った。
+
+1. マシン間で共有管理したいMCPサーバーが今のところなく
+   MCPサーバ追加する頻度も高くないため使用したいツールで手動で追加する管理のほうがシンプル
+2. apmはデプロイ時に`${VAR}`参照を生のシークレット値に解決して
+   git管理下の`gemini/settings.json`(symlink先)へ書き込むため、
+   commit前の差分確認・書き戻しという運用負担が常に残る
+3. apm 0.23.1のMCP対応に制約が多い
+    - Claude Code向けは通常インストールだと`$HOME/.mcp.json`
+      (プロジェクトスコープ)に書かれ、ユーザースコープ
+      (`~/.claude.json`)には`-g`+`~/.apm/apm.yml`が必要
+    - `--mcp`フラグと`--root`の併用に不具合がある
+    - `timeout`等のツール固有キーやGemini固有の`oauth`ブロックを
+      表現できない
+
+apmのMCP対応が成熟し、マシン間で共有したいMCPサーバーが
+出てきたら再検討する。
+
+### 現在の管理方法
+
+| ツール      | 置き場所(いずれもgit管理外)                                         |
+| ----------- | ------------------------------------------------------------------- |
+| Claude Code | `~/.claude.json` (`claude mcp add -s user`で追加)                   |
+| Gemini CLI  | `~/.gemini/settings.local.json`                                     |
+| Codex CLI   | `codex/config.toml`に手書き(従来どおり。シークレット無しのもののみ) |
+
+- Gemini CLIは`~/.zshrc.local`で
+  `export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.gemini/settings.local.json"`
+  を定義し、システム設定レイヤーとして読み込ませている
+  (`mcpServers`はレイヤー間でマージされ、tracked側の
+  `gemini/settings.json`にはMCP設定を置かない)
+- シークレット(APIキー等)は`~/.zshrc.local`に`export`し、
+  設定ファイル側は`${VAR}`参照にする
+  (Claude Code / Gemini CLIとも起動時に環境変数を解決する)
+- git管理下のファイル(`gemini/settings.json`, `codex/config.toml`等)に
+  生のシークレット値を書かないこと(コミット禁止ルール)
+
+### slack-mcpのClaude Code接続について
+
+SlackのMCPサーバー(mcp.slack.com)はDynamic Client Registration
+非対応で、事前登録したOAuthクライアントが必須。さらにSlackアプリの
+リダイレクトURLはhttps必須のため、Claude Codeのコールバック
+(`http://localhost:<port>/callback`、パス・スキーム固定)は登録できず、
+Claude CodeのOAuthフローは使えない。
+
+代わりにGemini CLIのOAuthで取得済みのユーザートークン
+(xoxp-、長期有効)を`~/.zshrc.local`の`SLACK_MCP_USER_TOKEN`に置き、
+Bearerヘッダー直指定で接続している。
+
+```bash
+claude mcp add -s user --transport http slack-mcp \
+  https://mcp.slack.com/mcp \
+  --header 'Authorization: Bearer ${SLACK_MCP_USER_TOKEN}'
+```
+
+トークンが失効した場合はGemini CLI側で再認証し、
+`~/.gemini/mcp-oauth-tokens.json`から新しいトークンを取り出して
+`SLACK_MCP_USER_TOKEN`を更新する。
+
+### 新しいマシンでのセットアップ
+
+MCPサーバーが必要な場合のみ、以下を手で用意する(全てgit管理外)。
+
+1. `~/.zshrc.local`: シークレットと
+   `GEMINI_CLI_SYSTEM_SETTINGS_PATH`のexport
+2. `~/.gemini/settings.local.json`: Gemini CLI用のMCPサーバー定義
+3. `claude mcp add -s user ...`: Claude Code用のMCPサーバー追加
 
 ## Antigravity CLI / Codex CLI
 
