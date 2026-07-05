@@ -29,6 +29,15 @@ backup_and_link() {
   log "Linked $source → $target"
 }
 
+remove_symlink_if_exists() {
+  local target="$1"
+
+  if [ -L "$target" ]; then
+    log "Removing old symlink $target (superseded by apm)"
+    rm "$target"
+  fi
+}
+
 backup_and_copy() {
   local source="$1"
   local target="$2"
@@ -134,6 +143,15 @@ install_iterm2() {
   backup_and_link "$target" "$source"
 }
 
+install_apm() {
+  if command -v apm &>/dev/null; then
+    log "apm already installed, skipping"
+    return 0
+  fi
+  log "Installing apm (Agent Package Manager) via Homebrew..."
+  brew install microsoft/apm/apm 2>&1 | tee -a "$LOG_FILE"
+}
+
 install_claude() {
   log "Setting up Claude config..."
 
@@ -149,19 +167,22 @@ install_claude() {
   backup_and_link "$HOME/.claude/settings.json" "$DOTFILES_DIR/claude/settings.json"
   backup_and_link "$HOME/.claude/statusline.sh" "$DOTFILES_DIR/claude/statusline.sh"
 
-  if [ -d "$DOTFILES_DIR/claude/skills" ]; then
-    log "Linking Claude skills directory..."
-    backup_and_link "$HOME/.claude/skills" "$DOTFILES_DIR/claude/skills"
-  fi
+  # Skills/Commands/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
+  # 旧方式(ディレクトリ丸ごとsymlink)が残っているとapmが正しくデプロイできないため先に解除する
+  remove_symlink_if_exists "$HOME/.claude/skills"
+  remove_symlink_if_exists "$HOME/.claude/commands"
+  remove_symlink_if_exists "$HOME/.claude/agents"
 
+  install_apm
+  log "Deploying Claude skills/commands/agents via apm..."
+  (cd "$DOTFILES_DIR" && apm install --root "$HOME" --target claude)
+
+  # 引数付きでapm移行から除外しているCommandは個別にリンクする
   if [ -d "$DOTFILES_DIR/claude/commands" ]; then
-    log "Linking Claude commands directory..."
-    backup_and_link "$HOME/.claude/commands" "$DOTFILES_DIR/claude/commands"
-  fi
-
-  if [ -d "$DOTFILES_DIR/claude/agents" ]; then
-    log "Linking Claude agents directory..."
-    backup_and_link "$HOME/.claude/agents" "$DOTFILES_DIR/claude/agents"
+    log "Linking remaining Claude commands (not yet apm-managed)..."
+    for f in "$DOTFILES_DIR"/claude/commands/*.md; do
+      backup_and_link "$HOME/.claude/commands/$(basename "$f")" "$f"
+    done
   fi
 }
 
@@ -173,19 +194,23 @@ install_gemini() {
   backup_and_link "$HOME/.gemini/settings.json" "$DOTFILES_DIR/gemini/settings.json"
   backup_and_link "$HOME/.gemini/GEMINI.md" "$DOTFILES_DIR/gemini/GEMINI.md"
 
-  if [ -d "$DOTFILES_DIR/gemini/skills" ]; then
-    log "Linking Gemini skills directory..."
-    backup_and_link "$HOME/.gemini/skills" "$DOTFILES_DIR/gemini/skills"
-  fi
+  # Skills/Commands/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
+  # 旧方式(ディレクトリ丸ごとsymlink)が残っているとapmが正しくデプロイできないため先に解除する
+  # SkillはGemini CLI公式サポートの~/.agents/skills/エイリアスにデプロイされる
+  remove_symlink_if_exists "$HOME/.gemini/skills"
+  remove_symlink_if_exists "$HOME/.gemini/commands"
+  remove_symlink_if_exists "$HOME/.gemini/agents"
 
+  install_apm
+  log "Deploying Gemini skills/commands/agents via apm..."
+  (cd "$DOTFILES_DIR" && apm install --root "$HOME" --target gemini)
+
+  # 引数付きでapm移行から除外しているCommandは個別にリンクする
   if [ -d "$DOTFILES_DIR/gemini/commands" ]; then
-    log "Linking Gemini commands directory..."
-    backup_and_link "$HOME/.gemini/commands" "$DOTFILES_DIR/gemini/commands"
-  fi
-
-  if [ -d "$DOTFILES_DIR/gemini/agents" ]; then
-    log "Linking Gemini agents directory..."
-    backup_and_link "$HOME/.gemini/agents" "$DOTFILES_DIR/gemini/agents"
+    log "Linking remaining Gemini commands (not yet apm-managed)..."
+    for f in "$DOTFILES_DIR"/gemini/commands/*.toml; do
+      backup_and_link "$HOME/.gemini/commands/$(basename "$f")" "$f"
+    done
   fi
 
   if [ -d "$DOTFILES_DIR/gemini/policies" ]; then

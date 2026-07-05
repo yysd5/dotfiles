@@ -45,19 +45,16 @@ tasklist.mdの進捗管理を確実に行うスキル。
 
 3. **テンプレートからファイル作成**
 
-    以下のテンプレートをReadツールで読み込み、
+    このSKILL.mdと同じディレクトリの`assets/`配下にある
+    以下のテンプレートをファイル読み込みツールで読み込み、
     プレースホルダーを具体的な内容に置き換えてファイルを作成:
 
-    - `claude/skills/steering/assets/requirements.md`
+    - `assets/requirements.md`
       → `.steering/[日付]-[機能名]/requirements.md`
-    - `claude/skills/steering/assets/design.md`
+    - `assets/design.md`
       → `.steering/[日付]-[機能名]/design.md`
-    - `claude/skills/steering/assets/tasklist.md`
+    - `assets/tasklist.md`
       → `.steering/[日付]-[機能名]/tasklist.md`
-
-    ※ リポジトリ内で見つけられない場合は
-    ホームディレクトリの`.claude`ディレクトリ配下にある
-    可能性がある。
 
 4. **requirements.md, design.md, tasklist.mdの内容生成**
 
@@ -104,10 +101,10 @@ tasklist.mdに従って実装を進め、
 **MUST（必須）**:
 
 - tasklist.mdを常に開いた状態で実装
-- タスク開始時に必ずEditツールで`[ ]`→`[-]`に更新し
+- タスク開始時に必ずファイル編集ツールで`[ ]`→`[-]`に更新し
   仕掛中と分かるようにする
 - タスク完了時にはユーザに承認を求める。
-  承認を得られたら、必ずEditツールで`[-]`→`[x]`に更新し
+  承認を得られたら、必ずファイル編集ツールで`[-]`→`[x]`に更新し
   完了を記録する
 - **tasklist.mdの全タスクが完了するまで作業を継続する**
 - NEVER: tasklist.mdを更新せずに次のタスクに進まない
@@ -116,8 +113,8 @@ tasklist.mdに従って実装を進め、
 **NEVER（禁止）**:
 
 - tasklist.mdを見ずに実装を進める
-- TaskCreate/TaskUpdateツールだけで進捗管理する
-  （TaskCreate/TaskUpdateは補助、tasklist.mdが正式）
+- タスク管理ツールだけで進捗管理する
+  （タスク管理ツールは補助、tasklist.mdが正式）
 - 複数タスクをまとめて更新する（リアルタイムに更新する）
 - **「時間の都合により」「別タスクとして実施予定」などの
   理由でタスクをスキップする**
@@ -186,17 +183,17 @@ tasklist.mdに従って実装を進め、
 #### ステップ1: tasklist.mdを読み込む
 
 ```
-Readツールで '.steering/[日付]-[機能名]/tasklist.md' を読み込む
+ファイル読み込みツールで '.steering/[日付]-[機能名]/tasklist.md' を読み込む
 ```
 
 全体のタスク構造を把握し、次に着手すべきタスクを特定する。
 
-#### ステップ2: TaskCreateでタスク管理開始
+#### ステップ2: タスク管理ツールで管理開始
 
-tasklist.mdの内容に基づいてTaskCreateツールで
+tasklist.mdの内容に基づいてタスク管理ツールで
 タスクリストを作成:
 
-- これはClaude Code内部の補助的なメモ
+- これはAIエージェント内部の補助的なメモ
 - **tasklist.mdこそが正式なドキュメント**
 
 #### ステップ3: タスクループ（各タスクで繰り返す）
@@ -210,7 +207,7 @@ tasklist.mdを読み、次の未完了タスク（`[ ]`）を特定
 **3-2. タスク開始をtasklist.mdに記録（必須）**
 
 ```
-Editツールを使って、tasklist.mdの該当行を
+ファイル編集ツールを使って、tasklist.mdの該当行を
 仕掛中に更新(`[ ]`→`[-]`)
 
 例:
@@ -218,13 +215,13 @@ old_string: "- [ ] StorageServiceを実装"
 new_string: "- [-] StorageServiceを実装"
 ```
 
-**重要**: Editツールを実行した直後に、
+**重要**: ファイル編集ツールを実行した直後に、
 更新が成功したことを確認する。
 
-**3-3. TaskUpdateでもステータス更新**
+**3-3. タスク管理ツールでもステータス更新**
 
 ```
-TaskUpdateツールで該当タスクを"in_progress"に変更
+タスク管理ツールで該当タスクを"in_progress"に変更
 ```
 
 **3-4. 実装を実行**
@@ -238,7 +235,7 @@ TaskUpdateツールで該当タスクを"in_progress"に変更
 
 ```
 実装完了後、ユーザに確認を依頼する。
-承認されれば、必ずEditツールでtasklist.mdの
+承認されれば、必ずファイル編集ツールでtasklist.mdの
 当該タスクを仕掛中から完了に更新する(`[-]`→`[x]`)
 
 例:
@@ -248,10 +245,10 @@ new_string: "- [x] StorageServiceを実装"
 サブタスクがある場合はサブタスクも個別に更新する。
 ```
 
-**3-6. TaskUpdateでもステータス更新**
+**3-6. タスク管理ツールでもステータス更新**
 
 ```
-TaskUpdateツールで該当タスクを"completed"に変更
+タスク管理ツールで該当タスクを"completed"に変更
 ```
 
 **3-7. タスク完了後、更新した方が良いドキュメントがあれば更新**
@@ -275,7 +272,7 @@ design.md, requirements.md, tasklist.mdの内容を
 1. **tasklist.mdを読み込んで進捗確認**
 
     ```
-    Readツールで '.steering/[日付]-[機能名]/tasklist.md'
+    ファイル読み込みツールで '.steering/[日付]-[機能名]/tasklist.md'
     を読み込む
     ```
 
@@ -297,7 +294,7 @@ design.md, requirements.md, tasklist.mdの内容を
 1. **tasklist.mdを読み込む**
 
     ```
-    Readツールで '.steering/[日付]-[機能名]/tasklist.md'
+    ファイル読み込みツールで '.steering/[日付]-[機能名]/tasklist.md'
     を読み込む
     ```
 
@@ -361,7 +358,7 @@ design.md, requirements.md, tasklist.mdの内容を
 1. **最終確認**
 
     ```
-    Readツールで '.steering/[日付]-[機能名]/tasklist.md'
+    ファイル読み込みツールで '.steering/[日付]-[機能名]/tasklist.md'
     を読み込む
     ```
 
@@ -369,7 +366,7 @@ design.md, requirements.md, tasklist.mdの内容を
 
 2. **振り返りセクションに記録**
     ```
-    Editツールでtasklist.mdの
+    ファイル編集ツールでtasklist.mdの
     「実装後の振り返り」セクションを更新:
     - 実装完了日
     - 計画と実績の差分
@@ -384,7 +381,7 @@ design.md, requirements.md, tasklist.mdの内容を
 - [ ] tasklist.mdを最近更新したか？
   （最後の更新から5タスク以内）
 - [ ] 進捗がドキュメントに反映されているか？
-  （Readツールで確認）
+  （ファイル読み込みツールで確認）
 - [ ] ユーザーがtasklist.mdを見て進捗が分かるか？
 
 ## モード3: 振り返り
@@ -398,7 +395,7 @@ design.md, requirements.md, tasklist.mdの内容を
 1. **tasklist.mdを読み込む**
 
     ```
-    Readツールで '.steering/[日付]-[機能名]/tasklist.md'
+    ファイル読み込みツールで '.steering/[日付]-[機能名]/tasklist.md'
     を読み込む
     ```
 
@@ -409,7 +406,7 @@ design.md, requirements.md, tasklist.mdの内容を
     - 学んだこと（技術的な学び、プロセス上の改善点）
     - 次回への改善提案
 
-3. **Editツールで更新**
+3. **ファイル編集ツールで更新**
 
     ```
     tasklist.mdの「実装後の振り返り」セクションを更新
@@ -431,10 +428,10 @@ design.md, requirements.md, tasklist.mdの内容を
 1. **即座に更新を実行**
 
     ```
-    Readツールで '.steering/[日付]-[機能名]/tasklist.md'
+    ファイル読み込みツールで '.steering/[日付]-[機能名]/tasklist.md'
     を読み込む
     完了したタスクを特定し、
-    すべてEditツールで`[x]`に更新
+    すべてファイル編集ツールで`[x]`に更新
     ```
 
 2. **ユーザーに報告**
@@ -455,14 +452,14 @@ design.md, requirements.md, tasklist.mdの内容を
 1. **tasklist.mdに注釈を追加**
 
     ```
-    Editツールで該当タスクに注釈を追加:
+    ファイル編集ツールで該当タスクに注釈を追加:
     「- [x] タスク名（実装方法を変更: 理由）」
     ```
 
 2. **必要に応じて新しいタスクを追加**
 
     ```
-    Editツールで新しいタスクを追加
+    ファイル編集ツールで新しいタスクを追加
     ```
 
 3. **design.mdも更新**
@@ -476,11 +473,11 @@ design.md, requirements.md, tasklist.mdの内容を
 
 - [ ] tasklist.mdを読み込んだか？
 - [ ] 次のタスクを特定したか？
-- [ ] タスク開始時にEditツールで更新したか？
+- [ ] タスク開始時にファイル編集ツールで更新したか？
 
 実装後に必ず確認:
 
-- [ ] タスク完了時にEditツールで更新したか？
+- [ ] タスク完了時にファイル編集ツールで更新したか？
 - [ ] tasklist.mdの進捗を確認したか？
 - [ ] ユーザーが見て進捗が分かる状態か？
 
@@ -499,7 +496,7 @@ design.md, requirements.md, tasklist.mdの内容を
 **このスキルの最も重要な役割は、
 tasklist.mdの進捗管理を確実に行うことである。**
 
-- TaskCreate/TaskUpdateは揮発的なメモ
+- タスク管理ツールは揮発的なメモ
   （ユーザーには見えない）
 - **tasklist.mdこそが永続的なドキュメント
   （ユーザーが見る）**

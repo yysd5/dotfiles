@@ -1,0 +1,16 @@
+name: dotfiles
+version: 1.0.0
+description: APM project for dotfiles
+author: yysd5
+# Which agent platforms to deploy to.
+# Resolution order: --target flag > this field > auto-detect from filesystem.
+# Accepted values: vscode, agents, copilot, claude, cursor, opencode, codex,
+# gemini, antigravity, windsurf, kiro, agent-skills, all
+targets:
+- claude
+- gemini
+dependencies:
+  apm: []
+  mcp: []
+includes: auto
+scripts: {}
