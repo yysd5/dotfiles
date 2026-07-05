@@ -1,6 +1,6 @@
 ---
 name: summarize-session
-description: 現在のセッションの対話内容を要約し、Markdown形式で出力する。
+description: "現在のセッションの対話内容を要約し、Markdown形式で出力する。"
 ---
 
 これまでの会話セッション全体を振り返り、内容を要約してMarkdown形式で出力してください。

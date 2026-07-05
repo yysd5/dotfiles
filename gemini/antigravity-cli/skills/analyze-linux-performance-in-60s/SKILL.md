@@ -1,6 +1,6 @@
 ---
 name: analyze-linux-performance-in-60s
-description: Linuxサーバーのパフォーマンスを分析（60秒分析チェックリストに基づく）
+description: "Linuxサーバーのパフォーマンスを分析(60秒分析チェックリストに基づく)"
 ---
 
 # Linuxパフォーマンス分析 (60秒分析チェックリスト)
@@ -19,16 +19,16 @@ description: Linuxサーバーのパフォーマンスを分析（60秒分析チ
 
 ```bash
 # --- パフォーマンスデータ収集スクリプト (約60秒) ---
-echo \"--- [1] uptime (Load Average) ---\"; uptime; \\
-echo \"--- [2] dmesg (Kernel Errors) ---\"; dmesg -T | tail -n 50; \\
-echo \"--- [3] vmstat (System stats - 20s) ---\"; vmstat -SM 1 20; \\
-echo \"--- [4] mpstat (CPU balance - 10s) ---\"; mpstat -P ALL 1 10; \\
-echo \"--- [5] pidstat (Process stats - 10s) ---\"; pidstat 1 10; \\
-echo \"--- [6] iostat (Disk I/O - 10s) ---\"; iostat -sxz 1 10; \\
-echo \"--- [7] free (Memory usage) ---\"; free -m; \\
-echo \"--- [8] sar-dev (Network I/O - 5s) ---\"; sar -n DEV 1 5; \\
-echo \"--- [9] sar-tcp (TCP stats - 5s) ---\"; sar -n TCP,ETCP 1 5; \\
-echo \"--- [10] top (Process list snapshot) ---\"; top -b -n 1 | head -n 50
+echo "--- [1] uptime (Load Average) ---"; uptime; \
+echo "--- [2] dmesg (Kernel Errors) ---"; dmesg -T | tail -n 50; \
+echo "--- [3] vmstat (System stats - 20s) ---"; vmstat -SM 1 20; \
+echo "--- [4] mpstat (CPU balance - 10s) ---"; mpstat -P ALL 1 10; \
+echo "--- [5] pidstat (Process stats - 10s) ---"; pidstat 1 10; \
+echo "--- [6] iostat (Disk I/O - 10s) ---"; iostat -sxz 1 10; \
+echo "--- [7] free (Memory usage) ---"; free -m; \
+echo "--- [8] sar-dev (Network I/O - 5s) ---"; sar -n DEV 1 5; \
+echo "--- [9] sar-tcp (TCP stats - 5s) ---"; sar -n TCP,ETCP 1 5; \
+echo "--- [10] top (Process list snapshot) ---"; top -b -n 1 | head -n 50
 ```
 
 ### ステップ2: 結果の貼り付け

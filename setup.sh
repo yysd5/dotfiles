@@ -38,6 +38,24 @@ remove_symlink_if_exists() {
   fi
 }
 
+sync_antigravity_commands() {
+  log "Generating Antigravity CLI Skill copies of Commands from .apm/prompts..."
+  for f in "$DOTFILES_DIR"/.apm/prompts/*.prompt.md; do
+    local name
+    name="$(basename "$f" .prompt.md)"
+    local dest_dir="$DOTFILES_DIR/gemini/antigravity-cli/skills/$name"
+    mkdir -p "$dest_dir"
+    {
+      echo "---"
+      echo "name: $name"
+      grep '^description:' "$f"
+      echo "---"
+      echo ""
+      awk '/^---$/{c++; next} c>=2' "$f"
+    } >"$dest_dir/SKILL.md"
+  done
+}
+
 backup_and_copy() {
   local source="$1"
   local target="$2"
@@ -226,6 +244,10 @@ install_antigravity() {
   backup_and_link "$HOME/.gemini/antigravity-cli/settings.json" "$DOTFILES_DIR/gemini/antigravity-cli/settings.json"
   backup_and_link "$HOME/.gemini/antigravity-cli/statusline.py" "$DOTFILES_DIR/gemini/antigravity-cli/statusline.py"
 
+  # Antigravity CLIはCommand機構を持たないため、.apm/prompts/をSkill形式に変換して
+  # gemini/antigravity-cli/skills/配下に配置する(実行結果はリポジトリにcommitする)
+  sync_antigravity_commands
+
   if [ -d "$DOTFILES_DIR/gemini/antigravity-cli/skills" ]; then
     log "Linking Antigravity skills directory..."
     backup_and_link "$HOME/.gemini/antigravity-cli/skills" "$DOTFILES_DIR/gemini/antigravity-cli/skills"
@@ -237,6 +259,11 @@ install_codex() {
   mkdir -p "$HOME/.codex"
   backup_and_link "$HOME/.codex/AGENT.md" "$DOTFILES_DIR/codex/AGENT.md"
   backup_and_link "$HOME/.codex/config.toml" "$DOTFILES_DIR/codex/config.toml"
+
+  # Skills/Agentsは.apm/配下のソースからapmでデプロイする
+  install_apm
+  log "Deploying Codex skills/agents via apm..."
+  (cd "$DOTFILES_DIR" && apm install --root "$HOME" --target codex)
 }
 
 install_intellij() {
