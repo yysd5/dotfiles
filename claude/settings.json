@@ -146,5 +146,6 @@
   "language": "日本語",
   "theme": "dark",
   "editorMode": "vim",
-  "preferredNotifChannel": "terminal_bell"
+  "preferredNotifChannel": "terminal_bell",
+  "model": "opus"
 }
