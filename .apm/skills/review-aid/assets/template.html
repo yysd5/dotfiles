@@ -1,0 +1,741 @@
+<!-- review-aid template: build.py が window.REVIEW_AID の行にデータ(JSON)を埋め込む -->
+<title>Review Aid</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --sunk:#e9edf1; --code:#f7f8fa; --ink:#16202a; --muted:#566370; --line:#d6dde4;
+  --accent:#3a54b4; --accent-soft:#e4e9f8;
+  --add:#1c6b3c; --add-bg:#e3f4e9; --del:#a3261f; --del-bg:#fbe7e5;
+  --must:#b3261e; --must-soft:#fbe4e2; --check:#9a5b00; --check-soft:#fbefd9; --sug:#3a54b4; --sug-soft:#e4e9f8;
+  --minor:#5f6b77; --minor-soft:#e9edf1; --ok:#1f7a45; --ok-soft:#e0f2e8;
+  --url:#2459c9; --url-soft:#e3ebfb; --fqdn:#a86200; --fqdn-soft:#fbeedb; --none:#6f7b87; --none-soft:#e9edf1; --bad:#b3261e; --bad-soft:#fbe4e2;
+  --sans:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1319; --surface:#161c24; --sunk:#1d2530; --code:#12171e; --ink:#e2e7ec; --muted:#98a4b0; --line:#2a3440;
+    --accent:#93a8f0; --accent-soft:#1d2644;
+    --add:#7fd6a0; --add-bg:#15301f; --del:#f29a92; --del-bg:#3a1b19;
+    --must:#f08a80; --must-soft:#3d1c1a; --check:#e8ad5a; --check-soft:#382a15; --sug:#93a8f0; --sug-soft:#1d2644;
+    --minor:#a3aeb9; --minor-soft:#242e38; --ok:#6fcf97; --ok-soft:#163324;
+    --url:#86a8f5; --url-soft:#1b2946; --fqdn:#e6a852; --fqdn-soft:#3a2b14; --none:#95a1ad; --none-soft:#242e38; --bad:#f08a80; --bad-soft:#3d1c1a;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1319; --surface:#161c24; --sunk:#1d2530; --code:#12171e; --ink:#e2e7ec; --muted:#98a4b0; --line:#2a3440;
+  --accent:#93a8f0; --accent-soft:#1d2644;
+  --add:#7fd6a0; --add-bg:#15301f; --del:#f29a92; --del-bg:#3a1b19;
+  --must:#f08a80; --must-soft:#3d1c1a; --check:#e8ad5a; --check-soft:#382a15; --sug:#93a8f0; --sug-soft:#1d2644;
+  --minor:#a3aeb9; --minor-soft:#242e38; --ok:#6fcf97; --ok-soft:#163324;
+  --url:#86a8f5; --url-soft:#1b2946; --fqdn:#e6a852; --fqdn-soft:#3a2b14; --none:#95a1ad; --none-soft:#242e38; --bad:#f08a80; --bad-soft:#3d1c1a;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.8;padding:0 16px}
+code{font-family:var(--mono);font-size:.86em;background:var(--sunk);padding:.08em .35em;border-radius:4px;overflow-wrap:anywhere}
+a{color:var(--accent)}
+h1,h2,h3{margin:0;line-height:1.4;text-wrap:balance}
+h1{font-size:1.85rem} h2{font-size:1.35rem} h3{font-size:1.06rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.layout{max-width:1200px;margin:0 auto;padding-block:40px 96px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:44px}
+@media (max-width:980px){.layout{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;font-size:13px;display:grid;gap:12px;max-height:calc(100vh - 40px);overflow:auto;padding-bottom:20px}
+.toc .lbl{font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:1px}
+.toc .tpart{font-weight:700;color:var(--ink);margin-top:8px;font-size:12.5px}
+.toc a{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:6px;align-items:start;padding:3px 8px;border-left:2px solid var(--line);color:var(--muted);text-decoration:none;line-height:1.5}
+.toc a:hover,.toc a:focus-visible{color:var(--ink);border-left-color:var(--accent);outline:none}
+.toc a .dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--line);margin-top:6px}
+.toc a.read .dot{background:var(--ok);border-color:var(--ok)}
+.toc a .mk{font-size:10.5px;font-family:var(--mono);padding:0 5px;border-radius:4px;margin-top:3px}
+.pager{display:grid;gap:6px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.pager .now{font-weight:700;font-size:12.5px}
+.pager a{font-size:12.5px}
+.prog{display:grid;gap:6px}
+.pbar{height:6px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .2s}
+.pnum{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+main{display:grid;gap:60px;min-width:0}
+section.blk{display:grid;gap:16px;scroll-margin-top:24px}
+header.hero{display:grid;gap:14px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--accent)}
+.lead{max-width:68ch;font-size:1.04rem}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.steps{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.steps span,.steps a{background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px 12px;text-decoration:none;color:var(--ink)}
+.steps .on{border-color:var(--accent);color:var(--accent);font-weight:500}
+.steps i{color:var(--muted);font-style:normal}
+
+/* summary */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:10px;align-content:start;font-size:14px}
+.panel h3{font-size:.95rem}
+.counts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cnt{border-radius:8px;padding:8px 6px;text-align:center;display:grid;gap:0}
+.cnt b{font-size:1.4rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.cnt span{font-size:11.5px}
+.lv-must{background:var(--must-soft);color:var(--must)}
+.lv-check{background:var(--check-soft);color:var(--check)}
+.lv-sug{background:var(--sug-soft);color:var(--sug)}
+.lv-minor{background:var(--minor-soft);color:var(--minor)}
+.lv-ok{background:var(--ok-soft);color:var(--ok)}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:13px;font-variant-numeric:tabular-nums}
+.trow .r{color:var(--ok);font-weight:500}
+ul.plain{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.legend{display:grid;gap:6px;font-size:13px}
+.legend div{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;align-items:start}
+.tag{display:inline-block;font-size:11.5px;font-weight:500;padding:1px 9px;border-radius:99px;white-space:nowrap;text-align:center}
+
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+.diagram pre.mermaid{margin:0;background:transparent;font-family:var(--sans)}
+.dcap{font-size:13px;color:var(--muted);max-width:76ch}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+th{font-size:12px;font-weight:500;color:var(--muted);background:var(--sunk);white-space:nowrap}
+td a{white-space:nowrap}
+
+/* walkthrough */
+.part{display:grid;gap:36px;scroll-margin-top:24px}
+.phead{display:grid;gap:6px;max-width:70ch}
+.phead .eyebrow{color:var(--muted)}
+article.change{display:grid;gap:14px;scroll-margin-top:24px}
+.chead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.focus{font-size:11px;font-family:var(--mono);padding:1px 8px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
+.focus.hot{border-color:var(--must);color:var(--must)}
+.focus.skim{border-style:dashed}
+.file{font-family:var(--mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere;flex-basis:100%}
+.file b{color:var(--ink);font-weight:500}
+.say{max-width:72ch;display:grid;gap:10px}
+.diff{background:var(--code);border:1px solid var(--line);border-radius:8px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65;padding-block:6px}
+.diff .ln{display:block;padding:0 14px;white-space:pre;min-width:max-content}
+.diff .add{background:var(--add-bg);color:var(--add)}
+.diff .del{background:var(--del-bg);color:var(--del)}
+.diff .hunk{color:var(--muted);background:var(--sunk)}
+.diff .cm{color:var(--muted)}
+.diff .ellip{color:var(--muted);font-style:italic}
+.look{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:grid;gap:6px;font-size:14px;max-width:80ch}
+.look .ttl,.ai .ttl{font-size:12px;font-weight:500;letter-spacing:.04em}
+.look .ttl{color:var(--accent)}
+.look ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.ai{display:grid;gap:8px;max-width:80ch}
+.ai .ttl{color:var(--muted)}
+.fd{border:1px solid var(--line);border-left-width:4px;border-radius:8px;background:var(--surface);padding:10px 14px;display:grid;gap:6px;font-size:14px}
+.fd.must{border-left-color:var(--must)} .fd.check{border-left-color:var(--check)} .fd.sug{border-left-color:var(--sug)} .fd.minor{border-left-color:var(--minor)} .fd.ok{border-left-color:var(--ok)}
+.fd .fh{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.fd .fh b{font-weight:700}
+.fd .persp{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.fd .acts{display:flex;gap:8px;flex-wrap:wrap}
+.fd pre.draft{margin:0;white-space:pre-wrap;font-family:var(--sans);font-size:13px;background:var(--code);border:1px dashed var(--line);border-radius:6px;padding:8px 10px}
+button.btn{font:inherit;font-size:12px;background:var(--surface);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 10px;cursor:pointer}
+button.btn:hover,button.btn:focus-visible{color:var(--ink);border-color:var(--accent);outline:none}
+.readbtn{justify-self:start;font:inherit;font-size:12.5px;background:var(--surface);color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:3px 14px;cursor:pointer}
+.readbtn:hover,.readbtn:focus-visible{border-color:var(--accent);color:var(--ink);outline:none}
+.readbtn[aria-pressed="true"]{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.cmd{display:flex;gap:8px;align-items:stretch;max-width:80ch}
+.cmd pre{flex:1;margin:0;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:8px 12px;overflow-x:auto;font-family:var(--mono);font-size:12.5px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.filters label{display:inline-flex;gap:6px;align-items:center;font-size:13px;border:1px solid var(--line);border-radius:99px;padding:2px 10px;background:var(--surface);cursor:pointer}
+.filters input{accent-color:var(--accent);margin:0}
+.flist{display:grid;gap:10px}
+.fd .where{font-size:12.5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* tabs */
+main{position:relative}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);padding-top:10px;margin-bottom:-20px}
+.tabs button{font:inherit;font-size:14px;padding:8px 18px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;background:none;color:var(--muted);cursor:pointer;margin-bottom:-1px;display:inline-flex;gap:8px;align-items:baseline}
+.tabs button small{font-size:12px;color:var(--muted);font-weight:400}
+.tabs button:hover,.tabs button:focus-visible{color:var(--ink);outline:none}
+.tabs button:focus-visible{box-shadow:inset 0 -2px 0 var(--accent)}
+.tabs button[aria-selected="true"]{background:var(--surface);border-color:var(--line);color:var(--ink);font-weight:700}
+.tabpanel{display:grid;gap:60px;min-width:0}
+.tabpanel.off{position:absolute;left:0;right:0;top:0;visibility:hidden;height:0;overflow:hidden;pointer-events:none}
+.tocset[hidden]{display:none}
+.toc .tsub{font-size:11.5px;font-weight:700;color:var(--ink);margin:8px 0 2px}
+.toc .plain-toc a{display:block;grid-template-columns:none}
+/* learn page */
+section{display:grid;gap:18px;scroll-margin-top:70px}
+article.change,section.blk,.part{scroll-margin-top:70px}
+.prose{display:grid;gap:10px;max-width:70ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:6px;align-content:start;font-size:14px;line-height:1.65}
+.card b{font-size:12px;font-family:var(--mono);font-weight:500;color:var(--accent)}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}
+.pill{display:inline-block;font-size:12px;font-weight:500;padding:1px 10px;border-radius:99px;white-space:nowrap}
+.p-url{background:var(--url-soft);color:var(--url)}.p-fqdn{background:var(--fqdn-soft);color:var(--fqdn)}.p-none{background:var(--none-soft);color:var(--none)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-ok{background:var(--ok-soft);color:var(--ok)}
+.code{display:grid;gap:10px}
+.src{background:var(--code);border:1px solid var(--line);border-radius:8px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65;margin:0;padding:10px 0}
+.src > span{display:block;padding:0 14px;white-space:pre;min-width:max-content}
+.src .cm{color:var(--muted)}
+.src .hl{background:var(--accent-soft)}
+.point{border-left:2px solid var(--accent);padding-left:12px;font-size:14px;display:grid;gap:4px;max-width:76ch}
+.later{font-size:13px;color:var(--fqdn);background:var(--fqdn-soft);border-radius:6px;padding:6px 12px;max-width:76ch}
+.later a{color:inherit;font-weight:500}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+@media (max-width:760px){.sim{grid-template-columns:minmax(0,1fr)}}
+.sim-in{padding:18px;display:grid;gap:16px;border-right:1px solid var(--line);align-content:start}
+@media (max-width:760px){.sim-in{border-right:none;border-bottom:1px solid var(--line)}}
+fieldset{border:none;margin:0;padding:0;display:grid;gap:4px}
+legend{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;padding:0}
+fieldset[disabled]{opacity:.45}
+label.opt{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;align-items:start;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13.5px;line-height:1.5}
+label.opt:hover{background:var(--sunk)}
+label.opt input{margin:3px 0 0;accent-color:var(--accent)}
+label.opt small{display:block;color:var(--muted);font-size:12px}
+.sim-out{padding:18px;display:grid;gap:12px;align-content:start}
+.verdict{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.verdict .big{font-size:1.1rem;font-weight:700}
+.kv{display:grid;grid-template-columns:minmax(120px,auto) minmax(0,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13.5px}
+.kv > div{padding:8px 12px;border-bottom:1px solid var(--line)}
+.kv > div:nth-last-child(-n+2){border-bottom:none}
+.kv .k{color:var(--muted);background:var(--sunk);font-size:12.5px}
+.why{font-size:13px;color:var(--muted);border-left:2px solid var(--accent);padding-left:10px}
+details.q{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 16px;font-size:14.5px}
+details.q summary{cursor:pointer;font-weight:500;list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
+details.q summary::-webkit-details-marker{display:none}
+details.q summary::before{content:"Q";font-family:var(--mono);color:var(--accent)}
+details.q[open] summary{margin-bottom:8px}
+details.q .a{padding-left:22px;display:grid;gap:6px}
+details.q summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+.next{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--accent-soft);border-radius:10px;padding:16px 20px}
+.next button{font:inherit;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer}
+
+/* syntax highlight (GitHub 風) */
+:root{--sx-kw:#cf222e;--sx-str:#0a3069;--sx-com:#6e7781;--sx-fn:#8250df;--sx-type:#953800;--sx-num:#0550ae;--sx-meta:#8250df;--sx-tag:#116329;--sx-attr:#0550ae}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sx-kw:#ff7b72;--sx-str:#a5d6ff;--sx-com:#8b949e;--sx-fn:#d2a8ff;--sx-type:#ffa657;--sx-num:#79c0ff;--sx-meta:#d2a8ff;--sx-tag:#7ee787;--sx-attr:#79c0ff}}
+:root[data-theme="dark"]{--sx-kw:#ff7b72;--sx-str:#a5d6ff;--sx-com:#8b949e;--sx-fn:#d2a8ff;--sx-type:#ffa657;--sx-num:#79c0ff;--sx-meta:#d2a8ff;--sx-tag:#7ee787;--sx-attr:#79c0ff}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in{color:var(--sx-kw)}
+.hljs-string,.hljs-regexp{color:var(--sx-str)}
+.hljs-comment,.hljs-quote{color:var(--sx-com);font-style:italic}
+.hljs-title.function_,.hljs-title{color:var(--sx-fn)}
+.hljs-title.class_,.hljs-type{color:var(--sx-type)}
+.hljs-number,.hljs-literal,.hljs-variable.constant_{color:var(--sx-num)}
+.hljs-meta{color:var(--sx-meta)}
+.hljs-tag,.hljs-name{color:var(--sx-tag)}
+.hljs-attr,.hljs-attribute{color:var(--sx-attr)}
+.diff .ln{color:var(--ink)}
+.diff .add,.diff .del{color:var(--ink)}
+.diff .sign{display:inline-block;width:1.2ch;user-select:none}
+.diff .add .sign{color:var(--add);font-weight:500}
+.diff .del .sign{color:var(--del);font-weight:500}
+
+/* illustrations */
+.ill{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;display:grid;gap:10px}
+.ill .row{display:flex;align-items:center;gap:14px;flex-wrap:nowrap;min-width:max-content}
+.ill .col{display:grid;gap:8px;align-content:start}
+.ill .arr{font-size:22px;color:var(--muted);flex:none;line-height:1}
+.ill .arr small{display:block;font-size:11px;text-align:center;line-height:1.3}
+.ill .cap{font-size:12px;color:var(--muted)}
+.ill .ttl{font-size:12px;font-weight:700;color:var(--ink);font-family:var(--mono)}
+.ill .note{font-size:12.5px;color:var(--muted);max-width:62ch}
+.dbt{border-collapse:collapse;font-family:var(--mono);font-size:12px;background:var(--code);border:1px solid var(--line)}
+.dbt caption{caption-side:top;text-align:left;font-size:11.5px;font-weight:500;color:var(--muted);padding-bottom:4px;font-family:var(--mono)}
+.dbt th{background:var(--sunk);font-weight:500;color:var(--muted);padding:4px 10px;border:1px solid var(--line);font-size:11.5px}
+.dbt td{padding:4px 10px;border:1px solid var(--line);white-space:nowrap}
+.dbt td.c{color:var(--muted);font-family:var(--sans)}
+.dbt tr.new td{background:var(--add-bg)}
+.dbt tr.dim td{color:var(--muted)}
+.rec{border:1px solid var(--line);border-radius:8px;background:var(--code);font-family:var(--mono);font-size:12px;min-width:260px}
+.rec .rk{padding:6px 10px;border-bottom:1px solid var(--line);background:var(--sunk);font-weight:500}
+.rec .rk span{color:var(--muted);font-weight:400;font-family:var(--sans);font-size:11px;margin-right:6px}
+.rec .rf{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;padding:6px 10px}
+.rec .rf .k{color:var(--muted)}
+.rec .rf .new{background:var(--add-bg);border-radius:3px;padding:0 4px}
+.rec .rf .hot{background:var(--accent-soft);border-radius:3px;padding:0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font-family:var(--mono);font-size:12px;padding:2px 9px;border-radius:99px;border:1px solid var(--line);background:var(--code);white-space:nowrap}
+.chip.drop{text-decoration:line-through;color:var(--muted);border-style:dashed}
+.chip.keep{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+.chip.anc{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.chip.mark{border-color:var(--fqdn);color:var(--fqdn);background:var(--fqdn-soft)}
+.chip.hit{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);font-weight:500}
+.verd{font-size:12px;font-weight:700;padding:2px 10px;border-radius:6px;white-space:nowrap}
+.verd.ok{background:var(--ok-soft);color:var(--ok)} .verd.ng{background:var(--bad-soft);color:var(--bad)}
+.tl{display:grid;grid-template-columns:130px repeat(3,minmax(170px,1fr));gap:6px;min-width:max-content;font-size:12.5px}
+.tl .l{color:var(--muted);font-size:12px;align-self:center}
+.tl .h{font-family:var(--mono);font-size:11.5px;color:var(--muted);border-left:2px solid var(--line);padding-left:6px}
+.tl .job{background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:4px 8px}
+.tl .ver{border-radius:6px;padding:4px 8px;font-family:var(--mono);text-align:center;border:1px solid var(--line)}
+.tl .v1{background:var(--code)} .tl .v2{background:var(--sunk)} .tl .v3{background:var(--code)}
+.tl .req{font-size:12px;color:var(--ink)}
+.box{border:1px solid var(--line);border-radius:8px;background:var(--code);padding:8px 10px;font-size:12.5px;display:grid;gap:4px;min-width:200px}
+.box .bt{font-family:var(--mono);font-size:12px;font-weight:500}
+.box.hl{border-color:var(--accent)}
+
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px}
+.gl{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:grid;gap:6px;align-content:start}
+.gl h3{font-size:.9rem;color:var(--muted);font-weight:500}
+.gl dl{margin:0;display:grid;grid-template-columns:minmax(96px,auto) minmax(0,1fr);gap:6px 12px;font-size:13.5px;line-height:1.6}
+.gl dt{font-weight:700;font-family:var(--mono);font-size:12.5px;padding-top:1px;overflow-wrap:anywhere}
+.gl dd{margin:0}
+
+.purpose{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;background:var(--accent-soft);border-radius:8px;padding:12px 16px;font-size:14px;max-width:80ch}
+.purpose .k{font-size:12px;font-weight:700;color:var(--accent);padding-top:2px;white-space:nowrap}
+.purpose .v{min-width:0}
+
+.q4{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+.q4 .qa{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:grid;gap:6px;font-size:14px;align-content:start}
+.q4 .qa .q{font-size:12px;font-weight:700;color:var(--accent)}
+.q4 .qa .src{font-size:12px;color:var(--muted)}
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.bk{border-radius:10px;padding:12px 16px;display:grid;gap:2px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--surface)}
+.bk b{font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.bk span{font-size:13px}
+.bk small{font-size:12px;color:var(--muted)}
+.bk.j{border-left:4px solid var(--sug)} .bk.u{border-left:4px solid var(--check)} .bk.n{border-left:4px solid var(--ok)}
+.ev{font-family:var(--mono);font-size:11px;font-weight:500;padding:0 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.ev.R1,.ev.R2{border-color:var(--ok);color:var(--ok)} .ev.R3,.ev.R4{border-color:var(--accent);color:var(--accent)} .ev.R5{border-color:var(--check);color:var(--check)}
+.fd .short{font-weight:700}
+.fd .loc{font-family:var(--mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.fd .jud{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:13.5px;background:var(--code);border-radius:6px;padding:8px 12px}
+.fd .jud .k{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.fd .jud ul{margin:0;padding-left:1.1em}
+.fd .res{font-size:13.5px;background:var(--check-soft);border-radius:6px;padding:6px 12px}
+.imp td:first-child{font-weight:500}
+.legend2{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12.5px;color:var(--muted);align-items:center}
+.sw2{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+.say{border-left:2px solid var(--line);padding-left:14px}
+.saylbl{font-size:11.5px;font-weight:500;color:var(--muted);letter-spacing:.04em}
+.fd .sugcode{display:grid;gap:4px}
+.fd .sugcode .lbl{font-size:12px;font-weight:700;color:var(--muted)}
+
+body{margin:0}
+</style>
+
+<div class="layout">
+  <aside class="toc" aria-label="目次">
+    <div class="tocset plain-toc" data-for="learn">
+      <div class="lbl">前提知識の目次</div>
+      <ol id="toc-learn"></ol>
+    </div>
+    <div class="tocset" data-for="review" hidden>
+      <div class="prog"><div class="lbl">読んだ変更</div><div class="pbar" aria-hidden="true"><i id="pfill"></i></div><div class="pnum" id="pnum"></div></div>
+      <ol id="toc"></ol>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="hero">
+      <div class="eyebrow" id="h-eyebrow"></div>
+      <h1 id="h-title"></h1>
+      <p class="lead" id="h-lead"></p>
+      <div class="meta" id="h-meta"></div>
+    </header>
+    <div class="tabs" role="tablist" aria-label="ページ">
+      <button type="button" role="tab" id="tabbtn-learn" aria-controls="learn" aria-selected="true" data-tab="learn">1 前提知識</button>
+      <button type="button" role="tab" id="tabbtn-review" aria-controls="review" aria-selected="false" data-tab="review">2 レビュー本編</button>
+    </div>
+    <div class="tabpanel" id="learn" role="tabpanel" aria-labelledby="tabbtn-learn"></div>
+    <div class="tabpanel off" id="review" role="tabpanel" aria-labelledby="tabbtn-review"></div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/protobuf.min.js"></script>
+<script>
+// 1行ずつ色付けする。ブロックコメントは行をまたぐので状態を持ち回る
+window.SX = (function(){
+  function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function langOf(line, lang){
+    var t = line.trim();
+    if (/^<(\/|!--|[a-zA-Z])/.test(t)) return 'xml';
+    return lang || 'java';
+  }
+  function line(text, lang, st){
+    st = st || {};
+    if (!window.hljs || !text) return esc(text);
+    if (st.inBlock) {
+      var end = text.indexOf('*/');
+      if (end < 0) return '<span class="hljs-comment">'+esc(text)+'</span>';
+      st.inBlock = false;
+      return '<span class="hljs-comment">'+esc(text.slice(0,end+2))+'</span>'+line(text.slice(end+2), lang, st);
+    }
+    var open = text.lastIndexOf('/*'), close = text.lastIndexOf('*/');
+    if (open >= 0 && close < open && !/["']/.test(text.slice(0,open))) st.inBlock = true;
+    try { return hljs.highlight(text, { language: langOf(text, lang), ignoreIllegals: true }).value; }
+    catch(e) { return esc(text); }
+  }
+  return { line: line, esc: esc };
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.REVIEW_AID = __REVIEW_AID_DATA__;
+</script>
+<script>
+// review-aid テンプレートの描画スクリプト。データは window.REVIEW_AID（build.py が埋め込む）
+(function(){
+  var D = window.REVIEW_AID;
+  if (!D) { document.getElementById('main').innerHTML = '<p>データがありません</p>'; return; }
+  var META = D.meta || {};
+  var KEY = 'review-aid:' + (META.storageKey || META.title || 'default');
+
+  function esc(t){ return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function $(id){ return document.getElementById(id); }
+  function hlLine(text, lang, st){ return window.SX ? SX.line(text, lang, st) : esc(text); }
+
+  // ---------- 共通の部品
+  var LV = {
+    must:{ label:'修正必須', cls:'lv-must', tag:'[must]', bucket:'j' },
+    sug:{ label:'要議論', cls:'lv-sug', tag:'[imho]', bucket:'j' },
+    minor:{ label:'軽微', cls:'lv-minor', tag:'[nits]', bucket:'j' },
+    check:{ label:'要確認', cls:'lv-check', tag:'[ask]', bucket:'u' },
+    ok:{ label:'問題なし', cls:'lv-ok', tag:'', bucket:'n' }
+  };
+  var ORDER = ['must','sug','minor','check','ok'];
+  var EV = { R1:'テストが通った証跡', R2:'全数を確認', R3:'一次資料の引用', R4:'コード構造（path:line）', R5:'読んで思っただけ' };
+  var FOCUS = { hot:['hot','重点'], normal:['','通常'], skim:['skim','流し読み'] };
+
+  function fileHtml(p, l){
+    if (!p) return '';
+    var i = p.lastIndexOf('/');
+    return '<span class="file">'+esc(p.slice(0,i+1))+'<b>'+esc(p.slice(i+1))+'</b>'+(l?':'+esc(l):'')+'</span>';
+  }
+  // 行頭の "!" はハイライト行
+  function srcHtml(code, lang){
+    var st = {};
+    return '<pre class="src">'+String(code).replace(/\n$/,'').split('\n').map(function(line){
+      var hl = line.charAt(0) === '!';
+      if (hl) line = line.slice(1);
+      return '<span'+(hl?' class="hl"':'')+'>'+(hlLine(line, lang, st) || ' ')+'</span>';
+    }).join('')+'</pre>';
+  }
+  function diffHtml(src, lang){
+    var st = {};
+    return src.split('\n').map(function(line){
+      if (/^@@/.test(line)) return '<span class="ln hunk">'+esc(line)+'</span>';
+      if (line.trim() === '...') return '<span class="ln ellip">'+esc(line)+'</span>';
+      var sign = line.charAt(0), cls = 'ln', body = line;
+      if (sign === '+' || sign === '-') { cls += sign === '+' ? ' add' : ' del'; body = line.slice(1); }
+      else if (sign === ' ') { body = line.slice(1); }
+      else { sign = ' '; }
+      return '<span class="'+cls+'"><span class="sign">'+(sign === ' ' ? ' ' : esc(sign))+'</span>'+(hlLine(body, lang, st) || ' ')+'</span>';
+    }).join('');
+  }
+  function mermaidHtml(src){ return '<div class="diagram"><pre class="mermaid">\n'+esc(src)+'\n</pre></div>'; }
+  function legendHtml(items){
+    if (!items || !items.length) return '';
+    return '<div class="legend2">'+items.map(function(x){
+      return x.color ? '<span><span class="sw2" style="background:'+esc(x.color)+(x.border?';border:2px solid '+esc(x.border):'')+'"></span>'+x.label+'</span>' : '<span>'+x.label+'</span>';
+    }).join('')+'</div>';
+  }
+  function tableHtml(b){
+    var cls = b.small ? 'dbt' : '';
+    var head = (b.head||[]).map(function(h){ return '<th>'+h+'</th>'; }).join('');
+    var rows = (b.rows||[]).map(function(r){
+      var rc = r.cls ? ' class="'+esc(r.cls)+'"' : '';
+      var cells = (r.cells || r);
+      return '<tr'+rc+'>'+cells.map(function(c){ return '<td>'+c+'</td>'; }).join('')+'</tr>';
+    }).join('');
+    var t = '<table'+(cls?' class="'+cls+'"':'')+'>'+(b.caption?'<caption>'+b.caption+'</caption>':'')+'<thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    return b.small ? '<div class="ill">'+t+(b.note?'<p class="note">'+b.note+'</p>':'')+'</div>' : '<div class="tbl">'+t+'</div>'+(b.note?'<p class="dcap">'+b.note+'</p>':'');
+  }
+
+  // ---------- 前提知識タブのブロック
+  var simCount = 0;
+  function blockHtml(b){
+    switch (b.type) {
+      case 'prose': return '<div class="prose">'+(b.paragraphs||[b.html]).map(function(p){ return '<p>'+p+'</p>'; }).join('')+'</div>';
+      case 'heading': return '<h3>'+b.text+'</h3>';
+      case 'caption': return '<p class="dcap">'+b.html+'</p>';
+      case 'cards': return '<div class="cards">'+b.items.map(function(c){ return '<div class="card"><b>'+c.label+'</b>'+c.html+'</div>'; }).join('')+'</div>';
+      case 'table': return tableHtml(b);
+      case 'mermaid': return legendHtml(b.legend)+mermaidHtml(b.src)+(b.caption?'<p class="dcap">'+b.caption+'</p>':'');
+      case 'code': return '<div class="chead"><h3>'+(b.title||'')+'</h3>'+fileHtml(b.file, b.line)+'</div>'+srcHtml(b.code, b.lang);
+      case 'html': return b.html;
+      case 'point': return '<div class="point">'+b.items.map(function(p, i){ return '<p>'+(i===0 && !b.noLabel ? '<strong>押さえておくこと</strong>: ' : '')+p+'</p>'; }).join('')+'</div>';
+      case 'later': return '<p class="later">レビュー本編タブでは: '+b.html+(b.link?' <a href="#'+esc(b.link)+'">該当の説明へ</a>':'')+'</p>';
+      case 'glossary': return '<div class="gloss">'+b.groups.map(function(g){
+          return '<div class="gl"><h3>'+g.title+'</h3><dl>'+g.items.map(function(it){ return '<dt>'+it[0]+'</dt><dd>'+it[1]+'</dd>'; }).join('')+'</dl></div>';
+        }).join('')+'</div>';
+      case 'quiz': return b.items.map(function(q){ return '<details class="q"><summary>'+q.q+'</summary><div class="a"><p>'+q.a+'</p></div></details>'; }).join('');
+      case 'simulator': return simulatorHtml(b);
+      default: return '';
+    }
+  }
+  // 2軸の選択肢から結果を引く。results のキーは "a|b"、2軸目が関係ない場合は "a"
+  function simulatorHtml(b){
+    var id = 'sim'+(simCount++);
+    var axes = b.axes.map(function(ax, ai){
+      return '<fieldset id="'+id+'-fs'+ai+'"><legend>'+ax.legend+'</legend>'+ax.options.map(function(o, oi){
+        var iid = id+'-'+ai+'-'+oi;
+        return '<label class="opt" for="'+iid+'"><input type="radio" name="'+id+'-'+ai+'" id="'+iid+'" value="'+esc(o.value)+'"'+(oi===0?' checked':'')+'><span>'+o.label+(o.note?'<small>'+o.note+'</small>':'')+'</span></label>';
+      }).join('')+'</fieldset>';
+    }).join('');
+    var outs = b.outputs.map(function(o){ return '<div class="k">'+o.label+'</div><div data-out="'+esc(o.key)+'"></div>'; }).join('');
+    setTimeout(function(){ bindSimulator(id, b); }, 0);
+    return '<div class="sim" id="'+id+'"><div class="sim-in">'+axes+'</div><div class="sim-out" aria-live="polite"><div class="verdict"><span class="big" data-title></span><span data-pill></span></div><div class="kv">'+outs+'</div><p class="why" data-why></p></div></div>';
+  }
+  function bindSimulator(id, b){
+    var root = $(id); if (!root) return;
+    function val(ai){ var el = root.querySelector('input[name="'+id+'-'+ai+'"]:checked'); return el ? el.value : ''; }
+    function render(){
+      var a = val(0), c = b.axes.length > 1 ? val(1) : '';
+      var r = b.results[a+'|'+c] || b.results[a] || {};
+      root.querySelector('[data-title]').textContent = r.title || '';
+      root.querySelector('[data-pill]').innerHTML = r.pill ? '<span class="pill '+esc(r.pill.cls||'')+'">'+r.pill.label+'</span>' : '';
+      b.outputs.forEach(function(o){ root.querySelector('[data-out="'+o.key+'"]').innerHTML = (r.fields && r.fields[o.key]) || '—'; });
+      root.querySelector('[data-why]').innerHTML = r.why || '';
+      if (b.axes.length > 1) $(id+'-fs1').disabled = !!b.results[a] && !b.results[a+'|'+c];
+    }
+    root.addEventListener('change', render);
+    render();
+  }
+  function purposeHtml(p){
+    if (!p) return '';
+    return '<div class="purpose"><span class="k">目的</span><span class="v">'+p.why+'</span><span class="k">入力 → 出力</span><span class="v">'+p.io+'</span><span class="k">今回との関係</span><span class="v">'+p.rel+'</span></div>';
+  }
+
+  function renderLearn(){
+    var L = D.learn || { sections: [] };
+    var html = '', toc = '';
+    L.sections.forEach(function(sec){
+      if (sec.tocGroup) toc += '<li class="tsub">'+esc(sec.tocGroup)+'</li>';
+      toc += '<li><a href="#'+esc(sec.id)+'">'+esc(sec.tocLabel || sec.title)+'</a></li>';
+      html += '<section id="'+esc(sec.id)+'" class="code">'+(sec.eyebrow?'<div class="eyebrow">'+esc(sec.eyebrow)+'</div>':'')+'<h2>'+sec.title+'</h2>'+purposeHtml(sec.purpose)+
+        (sec.blocks||[]).map(blockHtml).join('')+'</section>';
+    });
+    html += '<div class="next"><span>前提がそろったらレビュー本編へ。</span><button type="button" data-goto="review">2 レビュー本編へ →</button></div>';
+    $('learn').innerHTML = html;
+    $('toc-learn').innerHTML = toc;
+  }
+
+  // ---------- レビュー本編タブ
+  var read = {};
+  try { read = JSON.parse(localStorage.getItem(KEY+':read') || '{}') || {}; } catch(e) { read = {}; }
+  function saveRead(){ try { localStorage.setItem(KEY+':read', JSON.stringify(read)); } catch(e) {} }
+  var allFindings = [], byId = {}, total = 0;
+
+  function findingHtml(f, withWhere, idx){
+    var lv = LV[f.lv] || LV.ok;
+    var draftId = 'd'+idx+(withWhere?'w':'');
+    var text = f.draft ? (lv.tag ? lv.tag+' ' : '')+f.draft+(f.code ? '\n\n修正案のイメージ:\n```'+(f.codeLang||'java')+'\n'+f.code+'\n```'+(f.codeNote ? '\n'+f.codeNote : '') : '') : '';
+    var draft = text ? '<pre class="draft" id="'+draftId+'">'+esc(text)+'</pre><div class="acts"><button class="btn" type="button" data-copy="'+draftId+'">PR コメントをコピー</button></div>' : '';
+    var where = withWhere ? '<div class="where"><a href="#'+f.cid+'">'+esc(f.ctitle)+'</a></div>' : '';
+    var ev = f.ev ? '<span class="ev '+esc(f.ev)+'" title="'+esc(EV[f.ev]||'')+'">'+esc(f.ev)+' '+esc(EV[f.ev]||'')+'</span>' : '';
+    var jud = f.why ? '<div class="jud"><span class="k">なぜ人間か</span><span>'+f.why+'</span><span class="k">AI の見解</span><span>'+(f.view||'')+'</span><span class="k">選択肢</span><ul>'+(f.options||[]).map(function(o){return '<li>'+o+'</li>';}).join('')+'</ul></div>' : '';
+    var sc = '';
+    if (f.code) {
+      var st = {};
+      sc = '<div class="sugcode"><span class="lbl">修正案のイメージ</span><div class="diff">'+f.code.split('\n').map(function(l){ return '<span class="ln">'+(hlLine(l, f.codeLang||'java', st)||' ')+'</span>'; }).join('')+'</div>'+(f.codeNote ? '<span class="cap" style="font-size:12.5px;color:var(--muted)">'+f.codeNote+'</span>' : '')+'</div>';
+    }
+    var res = f.resolve ? '<div class="res"><b>何を確認すれば決着するか</b>: '+f.resolve+'</div>' : '';
+    return '<div class="fd '+esc(f.lv)+'" data-lv="'+esc(f.lv)+'"><div class="fh"><span class="tag '+lv.cls+'">'+lv.label+(lv.tag?' '+lv.tag:'')+'</span>'+ev+(f.persp?'<span class="persp">観点 '+esc(f.persp)+'</span>':'')+'</div>'+
+      '<div class="short">'+(f.short||'')+'</div>'+(f.where?'<div class="loc">'+esc(f.where)+'</div>':'')+
+      where+'<p>'+(f.body||'')+'</p>'+jud+sc+res+draft+'</div>';
+  }
+
+  function renderReview(){
+    var R = D.review || {};
+    var toc = '';
+    var S = R.summary || {};
+    var h = '';
+    h += '<p class="lead" style="margin-top:4px">'+(R.intro || '変更ごとに、コード片と「作者の意図」を並べ、AI のレビュー結果を付けた。<strong>「作者の意図」は作者本人の説明ではなく、AI が差分・コードコメント・コミットメッセージ・仕様書から推定し、作者の視点で書いたもの</strong>。外れている可能性があるので、疑問があれば作者に確認する。')+'</p>';
+
+    // サマリ
+    h += '<section class="blk" id="summary"><h2>サマリ</h2><div class="buckets">'+
+      '<a class="bk j" href="#fl-j"><b id="bucket-j">0</b><span>人間の判断が要るもの</span><small>なぜ人間か / AI の見解 / 選択肢 付き</small></a>'+
+      '<a class="bk u" href="#fl-u"><b id="bucket-u">0</b><span>要確認</span><small>何を確認すれば決着するか 付き</small></a>'+
+      '<a class="bk n" href="#fl-n"><b id="bucket-n">0</b><span>見なくてよいもの</span><small>R1〜R4 の根拠付き。R5 は入れない</small></a></div>'+
+      (S.note?'<p class="dcap">'+S.note+'</p>':'')+'<div class="sum">'+
+      '<div class="panel"><h3>'+(S.testTitle||'テスト（AI がローカルで実行）')+'</h3>'+(S.tests||[]).map(function(t){ return '<div class="trow"><span>'+t.label+'</span><span class="r">'+t.result+'</span></div>'; }).join('')+(S.testNote?'<p class="muted" style="font-size:12.5px">'+S.testNote+'</p>':'')+'</div>'+
+      '<div class="panel"><h3>時間の使い方</h3><ul class="plain">'+(S.tips||[]).map(function(t){ return '<li>'+t+'</li>'; }).join('')+'</ul></div>'+
+      '<div class="panel legend"><h3>根拠の強さ</h3>'+['R1','R2','R3','R4','R5'].map(function(k){ return '<div><span class="ev '+k+'">'+k+'</span><span>'+EV[k]+(k==='R5'?'。「見なくてよい」には入れない':'')+'</span></div>'; }).join('')+'</div>'+
+      '</div></section>';
+    toc += '<li><a href="#summary"><span class="dot"></span><span>サマリ</span><span></span></a></li>';
+
+    if (R.purpose) {
+      h += '<section class="blk" id="purpose"><h2>この PR は何をしようとしているか</h2>'+(R.purposeNote?'<p class="dcap">'+R.purposeNote+'</p>':'')+'<div class="q4">'+
+        R.purpose.map(function(q){ return '<div class="qa"><span class="q">'+q.q+'</span><span>'+q.a+'</span>'+(q.src?'<span class="src">出典: '+q.src+'</span>':'')+'</div>'; }).join('')+'</div></section>';
+      toc += '<li><a href="#purpose"><span class="dot"></span><span>PR の目的（4つの問い）</span><span></span></a></li>';
+    }
+    if (R.impact) {
+      h += '<section class="blk" id="impact"><h2>影響範囲の全数確認</h2>'+(R.impactNote?'<p class="dcap">'+R.impactNote+'</p>':'')+
+        '<div class="tbl"><table class="imp"><thead><tr><th>変わるもの</th><th>利用箇所（全数）</th><th>影響の有無と理由</th></tr></thead><tbody>'+
+        R.impact.map(function(r){ return '<tr><td>'+r.what+'</td><td>'+r.where+'</td><td>'+r.why+'</td></tr>'; }).join('')+'</tbody></table></div></section>';
+      toc += '<li><a href="#impact"><span class="dot"></span><span>影響範囲の全数確認</span><span></span></a></li>';
+    }
+    (R.diagrams||[]).forEach(function(d){
+      h += '<section class="blk" id="'+esc(d.id)+'"><h2>'+d.title+'</h2>'+(d.caption?'<p class="dcap">'+d.caption+'</p>':'')+legendHtml(d.legend)+mermaidHtml(d.src)+'</section>';
+      toc += '<li><a href="#'+esc(d.id)+'"><span class="dot"></span><span>'+esc(d.tocLabel||d.title)+'</span><span></span></a></li>';
+    });
+    if (R.trace) {
+      h += '<section class="blk" id="trace"><h2>仕様とテストの対応</h2><p class="dcap">仕様の各項目がどの変更で実装され、どのテストで確かめられているか。「テストなし」の行は AI の指摘対象。</p><div class="tbl"><table><thead><tr><th>仕様の項目</th><th>実装</th><th>テスト</th></tr></thead><tbody id="trace-body"></tbody></table></div></section>';
+      toc += '<li><a href="#trace"><span class="dot"></span><span>仕様とテストの対応</span><span></span></a></li>';
+    }
+    h += '<div id="parts" style="display:grid;gap:60px"></div>';
+    h += '<section class="blk" id="findings"><h2>指摘一覧</h2><p class="dcap">変更ごとに付けた AI の指摘を3つに仕分けた。PR コメントの雛形は先頭にタグを付けてある（[must] 修正必須、[imho] 要議論、[nits] 軽微、[ask] 事実の確認）。</p>'+
+      '<h3 id="fl-j">人間の判断が要るもの</h3><div class="flist" id="flist-j"></div>'+
+      '<h3 id="fl-u">要確認（人が事実を見れば決着するもの）</h3><div class="flist" id="flist-u"></div>'+
+      '<details class="q" id="fl-n" style="padding:10px 16px"><summary>見なくてよいもの（根拠付き）。開くと一覧が出る</summary><div class="a" style="padding-left:0"><div class="flist" id="flist-n"></div></div></details></section>';
+    $('review').innerHTML = h;
+
+    // 変更ごとのウォークスルー
+    var partsEl = $('parts');
+    toc = '<li><div class="tpart">全体</div></li>' + toc;
+    (R.parts||[]).forEach(function(part){
+      var sec = document.createElement('section');
+      sec.className = 'part'; sec.id = part.id;
+      var html = '<div class="phead"><div class="eyebrow">'+esc(part.eyebrow||'')+'</div><h2>'+part.title+'</h2>'+(part.intro?'<p class="muted">'+part.intro+'</p>':'')+'</div>';
+      toc += '<li><div class="tpart">'+esc(part.eyebrow||'')+' '+esc(part.title)+'</div></li>';
+      (part.changes||[]).forEach(function(c){
+        total++; byId[c.id] = c;
+        var cmds = (c.cmds||[]).map(function(cmd, i){ return '<div class="cmd"><pre id="'+c.id+'-cmd'+i+'">'+esc(cmd)+'</pre><button class="btn" type="button" data-copy="'+c.id+'-cmd'+i+'">コピー</button></div>'; }).join('');
+        var look = (c.look||[]).length ? '<div class="look"><div class="ttl">作者が見てほしいと思われる点（AI による推定）</div><ul>'+c.look.map(function(x){ return '<li>'+x+'</li>'; }).join('')+'</ul></div>' : '';
+        var sorted = (c.ai||[]).slice().sort(function(a,b){ return ORDER.indexOf(a.lv) - ORDER.indexOf(b.lv); });
+        var ai = sorted.length ? '<div class="ai"><div class="ttl">AI レビュー</div>'+sorted.map(function(f){ var r = findingHtml(f, false, allFindings.length); f.cid = c.id; f.ctitle = c.title; allFindings.push(f); return r; }).join('')+'</div>' : '';
+        var fo = FOCUS[c.focus || 'normal'] || FOCUS.normal;
+        var say = (c.say||[]).length ? '<div class="say"><div class="saylbl">作者の意図（AI による推定）</div>'+c.say.map(function(p){ return '<p>'+p+'</p>'; }).join('')+'</div>' : '';
+        html += '<article class="change" id="'+esc(c.id)+'"><div class="chead"><h3>'+c.title+'</h3><span class="focus '+fo[0]+'">'+fo[1]+'</span>'+(c.ref?'<span class="focus">既存コード・変更なし</span>':'')+fileHtml(c.file, c.line)+'</div>'+
+          (c.diff?'<div class="diff" role="region" aria-label="コード">'+diffHtml(c.diff, c.lang)+'</div>':'')+cmds+say+look+ai+
+          '<button class="readbtn" type="button" data-id="'+esc(c.id)+'" aria-pressed="'+(read[c.id]?'true':'false')+'">'+(read[c.id]?'読んだ':'読んだら押す')+'</button></article>';
+        var worst = sorted.filter(function(f){ return f.lv !== 'ok'; })[0];
+        var mk = worst ? '<span class="mk '+LV[worst.lv].cls+'">'+LV[worst.lv].label+'</span>' : '<span></span>';
+        toc += '<li><a href="#'+esc(c.id)+'" data-toc="'+esc(c.id)+'"'+(read[c.id]?' class="read"':'')+'><span class="dot"></span><span>'+esc(c.title)+'</span>'+mk+'</a></li>';
+      });
+      sec.innerHTML = html;
+      partsEl.appendChild(sec);
+    });
+    toc += '<li><div class="tpart">まとめ</div></li><li><a href="#findings"><span class="dot"></span><span>指摘一覧</span><span></span></a></li>';
+    $('toc').innerHTML = toc;
+
+    var bc = { j:0, u:0, n:0 };
+    allFindings.forEach(function(f){ bc[(LV[f.lv]||LV.ok).bucket]++; });
+    $('bucket-j').textContent = bc.j; $('bucket-u').textContent = bc.u; $('bucket-n').textContent = bc.n;
+
+    if (R.trace) {
+      $('trace-body').innerHTML = R.trace.map(function(t){
+        var c = byId[t.change];
+        return '<tr><td>'+t.spec+'</td><td>'+(c?'<a href="#'+esc(t.change)+'">'+esc(c.title)+'</a>':esc(t.change||''))+'</td><td>'+(t.test ? t.test : '<span class="tag lv-sug">テストなし</span>')+'</td></tr>';
+      }).join('');
+    }
+    var sortedAll = allFindings.slice().sort(function(a,b){ return ORDER.indexOf(a.lv) - ORDER.indexOf(b.lv); });
+    var n = 0;
+    ['j','u','n'].forEach(function(b){
+      $('flist-'+b).innerHTML = sortedAll.filter(function(f){ return (LV[f.lv]||LV.ok).bucket === b; }).map(function(f){ return findingHtml(f, true, n++); }).join('') || '<p class="muted">なし</p>';
+    });
+    refreshRead();
+  }
+  function refreshRead(){
+    var k = 0;
+    Object.keys(read).forEach(function(id){ if (read[id] && byId[id]) k++; });
+    $('pnum').textContent = k+' / '+total;
+    $('pfill').style.width = (total ? k/total*100 : 0)+'%';
+  }
+
+  // ---------- ヘッダ
+  function renderHeader(){
+    document.title = META.title || document.title;
+    $('h-eyebrow').textContent = META.eyebrow || '';
+    $('h-title').textContent = META.title || '';
+    $('h-lead').innerHTML = META.lead || '「前提知識」タブで仕様と既存コードの形をつかみ、「レビュー本編」タブで変更ごとの意図（AI による推定）と AI のレビュー結果を読む。';
+    $('h-meta').innerHTML = (META.links||[]).map(function(l){ return '<span>'+esc(l.label)+': '+(l.url?'<a href="'+esc(l.url)+'">'+esc(l.text||l.url)+'</a>':l.text)+'</span>'; }).join('') +
+      '<span>「読んだ」の状態はこのブラウザにだけ保存される</span>';
+    $('tabbtn-learn').innerHTML = '1 前提知識 <small>約'+((D.learn||{}).minutes||20)+'分</small>';
+    $('tabbtn-review').innerHTML = '2 レビュー本編 <small>約'+((D.review||{}).minutes||40)+'分</small>';
+  }
+
+  renderHeader();
+  renderLearn();
+  renderReview();
+
+  // ---------- タブと履歴（戻るボタンで元の位置に戻れるよう pushState で積む）
+  var TABS = ['learn','review'];
+  function activate(tab){
+    TABS.forEach(function(t){
+      var on = t === tab;
+      $(t).classList.toggle('off', !on);
+      $('tabbtn-'+t).setAttribute('aria-selected', on ? 'true' : 'false');
+      $('tabbtn-'+t).tabIndex = on ? 0 : -1;
+    });
+    document.querySelectorAll('.tocset').forEach(function(s){ s.hidden = s.getAttribute('data-for') !== tab; });
+    try { localStorage.setItem(KEY+':tab', tab); } catch(e) {}
+  }
+  function currentTab(){ var b = document.querySelector('.tabs [aria-selected="true"]'); return b ? b.getAttribute('data-tab') : 'learn'; }
+  function go(hash){
+    var id = (hash || '').replace(/^#/, '');
+    if (!id) return false;
+    if (TABS.indexOf(id) >= 0) { activate(id); window.scrollTo(0, 0); return true; }
+    var el = document.getElementById(id);
+    var p = el && el.closest ? el.closest('.tabpanel') : null;
+    if (!p) return false;
+    activate(p.id);
+    if (el.tagName === 'DETAILS') el.open = true;
+    var d = el.closest('details'); if (d) d.open = true;
+    requestAnimationFrame(function(){ el.scrollIntoView({ block:'start' }); });
+    return true;
+  }
+  function navigate(hash){
+    try { history.replaceState({ tab: currentTab(), y: window.scrollY }, '', location.href); } catch(err) {}
+    if (!go(hash)) return false;
+    try { history.pushState({ tab: currentTab(), hash: hash }, '', hash); } catch(err) {}
+    return true;
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-tab],[data-goto]');
+    if (b) { var t = b.getAttribute('data-tab') || b.getAttribute('data-goto'); if (t !== currentTab()) navigate('#'+t); return; }
+    var rb = e.target.closest('button.readbtn');
+    if (rb) {
+      var id = rb.getAttribute('data-id');
+      if (read[id]) delete read[id]; else read[id] = 1;
+      rb.setAttribute('aria-pressed', read[id] ? 'true' : 'false');
+      rb.textContent = read[id] ? '読んだ' : '読んだら押す';
+      var t2 = document.querySelector('[data-toc="'+id+'"]'); if (t2) t2.classList.toggle('read', !!read[id]);
+      saveRead(); refreshRead(); return;
+    }
+    var cb = e.target.closest('button[data-copy]');
+    if (cb) {
+      var src = $(cb.getAttribute('data-copy'));
+      var text = src ? src.textContent : '';
+      var orig = cb.textContent;
+      var fin = function(ok){ cb.textContent = ok ? 'コピーした' : '選択した'; setTimeout(function(){ cb.textContent = orig; }, 1400); };
+      var sel = function(){ if (!src) return; var r = document.createRange(); r.selectNodeContents(src); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); };
+      try { navigator.clipboard.writeText(text).then(function(){ fin(true); }, function(){ sel(); fin(false); }); } catch(err) { sel(); fin(false); }
+      return;
+    }
+    var a = e.target.closest('a[href^="#"]');
+    if (a && navigate(a.getAttribute('href'))) e.preventDefault();
+  });
+  window.addEventListener('popstate', function(e){
+    var st = e.state;
+    if (st && typeof st.y === 'number') { activate(st.tab); requestAnimationFrame(function(){ window.scrollTo(0, st.y); }); }
+    else if (st && st.hash) { go(st.hash); }
+    else { go(location.hash) || activate('learn'); }
+  });
+  document.querySelector('.tabs').addEventListener('keydown', function(e){
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    var next = TABS[(TABS.indexOf(currentTab()) + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
+    activate(next); $('tabbtn-'+next).focus();
+  });
+  if (!go(location.hash)) {
+    var saved = null;
+    try { saved = localStorage.getItem(KEY+':tab'); } catch(e) {}
+    activate(TABS.indexOf(saved) >= 0 ? saved : 'learn');
+  }
+  window.dispatchEvent(new Event('review-aid:rendered'));
+})();
+
+</script>
+<script>
+// JS で差し込んだ図を描く。ビューア側で描画済みのもの（data-processed）は飛ばす
+(function(){
+  if (!window.mermaid) return;
+  var dark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (document.documentElement.getAttribute('data-theme') !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  try {
+    mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'loose' });
+    mermaid.run({ querySelector: 'pre.mermaid:not([data-processed])' });
+  } catch (e) {}
+})();
+</script>
