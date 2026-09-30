@@ -18,7 +18,6 @@
       "Bash(echo:*)",
       "Bash(env)",
       "Bash(export:*)",
-      "Bash(find * -exec cat *)",
       "Bash(find:*)",
       "Bash(fzf:*)",
       "Bash(git diff *)",
