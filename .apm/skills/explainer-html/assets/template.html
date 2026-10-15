@@ -68,6 +68,7 @@ a{color:var(--accent)}
 .toc .st{flex:none;width:1.2em;text-align:center;font-size:12px;color:var(--fg-mute)}
 .toc .st.done{color:var(--ok)}
 .toc .st.half{color:var(--warn)}
+.toc .cnt{margin-left:auto;font-size:11.5px;color:var(--fg-mute)}
 .icon-btn{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:6px;
   padding:2px 8px;font:12px var(--sans);cursor:pointer}
 .side-toggle{display:none}
@@ -106,6 +107,8 @@ blockquote .by{display:block;font-size:12.5px;color:var(--fg-mute);margin-top:4p
 .marks button{border:1px solid var(--line);background:var(--bg);color:var(--fg-mute);
   border-radius:999px;padding:1px 10px;font:12px/1.6 var(--sans);cursor:pointer}
 .marks button[aria-pressed="true"]{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+/* 子の節を持つ章は、印の代わりに子の集計を出す */
+.sum{margin-left:auto;font-size:12px;font-weight:400;color:var(--fg-mute)}
 
 /* 事実と推測のラベル */
 .tag{display:inline-block;font-size:11.5px;line-height:1.5;padding:0 6px;border-radius:4px;
@@ -195,7 +198,8 @@ ol.refs .back{margin-left:6px;font-size:12px}
     </header>
 
     <!-- 章は section.ch。id を付けた h2/h3 が目次になる。
-         data-mark="chapter" → 「読んだ」「理解した」 / data-mark="todo" → 「実施済み」「回答済み」 -->
+         data-mark="chapter" → 「読んだ」「理解した」 / data-mark="todo" → 「実施済み」「回答済み」
+         印は目次の一番下の単位に付く。印付きの h3 を持つ h2 にはボタンが付かず、子の集計が出る -->
 
     <section class="ch">
       <h2 id="summary" data-mark="chapter">要約</h2>
@@ -209,6 +213,8 @@ ol.refs .back{margin-left:6px;font-size:12px}
         <tr><th>用語</th><th>定義</th><th>管理単位</th><th>情報元</th></tr>
         <tr><td>TERM</td><td>…</td><td>…</td><td><a class="cite" href="#ref-1">[1]</a></td></tr>
       </table>
+      <h3 id="prereq-diff" data-mark="chapter">似た概念の違い</h3>
+      <p>…</p>
     </section>
 
     <section class="ch">
@@ -295,12 +301,12 @@ ol.refs .back{margin-left:6px;font-size:12px}
     todo:    {opts: [['done', '実施済み'], ['answered', '回答済み']], done: ['done', 'answered'], half: []}
   };
   var marks = load('marks', {}); if (!marks || typeof marks !== 'object') marks = {};
-  var markables = [].slice.call(document.querySelectorAll('[data-mark][id]'));
+  function kindOf(el){ return KINDS[el.getAttribute('data-mark')]; }
 
   /* --- 目次を h2/h3 から作る --- */
   var heads = [].slice.call(document.querySelectorAll('.main h2[id], .main h3[id]'));
   var toc = document.getElementById('toc'), tocLinks = {};
-  var ol = document.createElement('ol'), sub = null;
+  var ol = document.createElement('ol'), sub = null, parent = null, children = {};
   heads.forEach(function(h){
     var li = document.createElement('li'), a = document.createElement('a');
     a.href = '#' + h.id;
@@ -308,14 +314,27 @@ ol.refs .back{margin-left:6px;font-size:12px}
     var tx = document.createElement('span'); tx.textContent = h.textContent.trim();
     a.appendChild(st); a.appendChild(tx); li.appendChild(a);
     tocLinks[h.id] = a;
-    if (h.tagName === 'H2' || !ol.lastElementChild) { ol.appendChild(li); sub = null; }
-    else { if (!sub) { sub = document.createElement('ol'); ol.lastElementChild.appendChild(sub); } sub.appendChild(li); }
+    if (h.tagName === 'H2' || !ol.lastElementChild) {
+      ol.appendChild(li); sub = null; parent = h.tagName === 'H2' ? h : null;
+    } else {
+      if (!sub) { sub = document.createElement('ol'); ol.lastElementChild.appendChild(sub); }
+      sub.appendChild(li);
+      if (parent && kindOf(h)) (children[parent.id] = children[parent.id] || []).push(h);
+    }
   });
   toc.appendChild(ol);
 
+  /* --- 印は目次の一番下の単位に付ける。印付きの h3 を持つ h2 は子の集計を出す --- */
+  var markables = heads.filter(function(h){ return kindOf(h) && !children[h.id]; });
+  var parents = heads.filter(function(h){ return children[h.id]; });
+  parents.forEach(function(h){
+    var n = document.createElement('span'); n.className = 'sum'; h.appendChild(n);
+    var c = document.createElement('span'); c.className = 'cnt'; tocLinks[h.id].appendChild(c);
+  });
+
   /* --- 印のボタンを見出しに付ける --- */
   markables.forEach(function(el){
-    var kind = KINDS[el.getAttribute('data-mark')]; if (!kind) return;
+    var kind = kindOf(el);
     var wrap = document.createElement('span'); wrap.className = 'marks';
     kind.opts.forEach(function(o){
       var b = document.createElement('button'); b.type = 'button';
@@ -330,19 +349,32 @@ ol.refs .back{margin-left:6px;font-size:12px}
     el.appendChild(wrap);
   });
 
+  function stateOf(el){
+    var kind = kindOf(el), v = marks[el.id];
+    return kind.done.indexOf(v) >= 0 ? 'done' : kind.half.indexOf(v) >= 0 ? 'half' : '';
+  }
+  function paint(id, s){
+    var st = tocLinks[id] && tocLinks[id].querySelector('.st'); if (!st) return;
+    st.className = 'st' + (s ? ' ' + s : '');
+    st.textContent = s === 'done' ? '✓' : s === 'half' ? '◐' : '○';
+  }
   function render(){
     var total = 0, done = 0;
     markables.forEach(function(el){
-      var kind = KINDS[el.getAttribute('data-mark')]; if (!kind) return;
-      var v = marks[el.id]; total++;
-      var isDone = kind.done.indexOf(v) >= 0, isHalf = kind.half.indexOf(v) >= 0;
-      if (isDone) done++;
+      var v = marks[el.id], s = stateOf(el); total++;
+      if (s === 'done') done++;
       [].forEach.call(el.querySelectorAll('.marks button'), function(b){
         b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v));
       });
-      var a = tocLinks[el.id];
-      if (a) { var st = a.querySelector('.st'); st.className = 'st' + (isDone ? ' done' : isHalf ? ' half' : '');
-        st.textContent = isDone ? '✓' : isHalf ? '◐' : '○'; }
+      paint(el.id, s);
+    });
+    parents.forEach(function(h){
+      var cs = children[h.id], d = 0, touched = false;
+      cs.forEach(function(c){ var s = stateOf(c); if (s === 'done') d++; if (s) touched = true; });
+      paint(h.id, d === cs.length ? 'done' : touched ? 'half' : '');
+      var t = d + '/' + cs.length;
+      h.querySelector('.sum').textContent = t;
+      tocLinks[h.id].querySelector('.cnt').textContent = t;
     });
     var p = document.getElementById('progress');
     p.querySelector('b').textContent = done + '/' + total;

@@ -20,10 +20,20 @@
   <h2 id="prereq" data-mark="chapter">前提知識</h2>
   <h3 id="prereq-terms" data-mark="chapter">用語と管理単位</h3>
   ...
+  <h3 id="prereq-diff" data-mark="chapter">似た概念の違い</h3>
+  ...
+</section>
+<section class="ch">
+  <h2 id="main-topic" data-mark="chapter">本題</h2>
+  ...
 </section>
 ```
 
 - `id` を付けた `h2` / `h3` が目次になる。`h3` は直前の `h2` の下に入る
+- 印は目次の一番下の単位に付く。上の例では「用語と管理単位」「似た概念の違い」「本題」の3つ
+  - 印付きの `h3` を持つ `h2`（上の「前提知識」）にはボタンが付かない。目次と見出しに子の集計が出る
+  - 進捗の分母も一番下の単位の数になる
+  - 印のためだけに `h3` を作らない。内容の区切りが無い章は `h2` のままでよい
 - `data-mark="chapter"`: 「読んだ」「理解した」。「理解した」で完了と数える
 - `data-mark="todo"`: 「実施済み」「回答済み」。どちらでも完了と数える
 - 印が不要な見出し（参照一覧など）には `data-mark` を付けない
