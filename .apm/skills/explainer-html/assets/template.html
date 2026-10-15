@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 印の保存キー。資料ごとに一意な値にする（例: explainer-html:<topic>） -->
+<meta name="doc-id" content="explainer-html:TOPIC">
+<title>TITLE</title>
+<style>
+/* ===== テーマ: 色はすべてトークン経由。SVG の図もこのトークンを使う ===== */
+:root{
+  --bg:#ffffff; --bg-soft:#f6f7f9; --bg-side:#f3f4f6; --fg:#1f2328; --fg-mute:#59636e;
+  --line:#d1d9e0; --accent:#0969da; --accent-soft:#ddf4ff;
+  --ok:#1a7f37; --ok-soft:#dafbe1; --warn:#9a6700; --warn-soft:#fff8c5;
+  --bad:#cf222e; --bad-soft:#ffebe9; --guess:#8250df; --guess-soft:#fbefff;
+  --code-bg:#f6f8fa; --code-hl:#fff8c5;
+  /* 図のトークン */
+  --d-fg:#1f2328; --d-mute:#59636e; --d-line:#8c959f; --d-box:#ffffff; --d-box-alt:#f6f8fa;
+  --d-a:#0969da; --d-a-soft:#ddf4ff; --d-b:#1a7f37; --d-b-soft:#dafbe1;
+  --d-c:#9a6700; --d-c-soft:#fff8c5; --d-d:#cf222e; --d-d-soft:#ffebe9;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --side-w:280px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1117; --bg-soft:#161b22; --bg-side:#11161d; --fg:#e6edf3; --fg-mute:#9198a1;
+    --line:#30363d; --accent:#4493f8; --accent-soft:#121d2f;
+    --ok:#3fb950; --ok-soft:#12261e; --warn:#d29922; --warn-soft:#272115;
+    --bad:#f85149; --bad-soft:#2d1214; --guess:#ab7df8; --guess-soft:#211a33;
+    --code-bg:#161b22; --code-hl:#3a2f12;
+    --d-fg:#e6edf3; --d-mute:#9198a1; --d-line:#6e7681; --d-box:#161b22; --d-box-alt:#0d1117;
+    --d-a:#4493f8; --d-a-soft:#121d2f; --d-b:#3fb950; --d-b-soft:#12261e;
+    --d-c:#d29922; --d-c-soft:#272115; --d-d:#f85149; --d-d-soft:#2d1214;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1117; --bg-soft:#161b22; --bg-side:#11161d; --fg:#e6edf3; --fg-mute:#9198a1;
+  --line:#30363d; --accent:#4493f8; --accent-soft:#121d2f;
+  --ok:#3fb950; --ok-soft:#12261e; --warn:#d29922; --warn-soft:#272115;
+  --bad:#f85149; --bad-soft:#2d1214; --guess:#ab7df8; --guess-soft:#211a33;
+  --code-bg:#161b22; --code-hl:#3a2f12;
+  --d-fg:#e6edf3; --d-mute:#9198a1; --d-line:#6e7681; --d-box:#161b22; --d-box-alt:#0d1117;
+  --d-a:#4493f8; --d-a-soft:#121d2f; --d-b:#3fb950; --d-b-soft:#12261e;
+  --d-c:#d29922; --d-c-soft:#272115; --d-d:#f85149; --d-d-soft:#2d1214;
+}
+
+/* ===== レイアウト ===== */
+*{box-sizing:border-box}
+html{scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.75 var(--sans);overflow-x:hidden}
+a{color:var(--accent)}
+.layout{display:flex;min-height:100vh}
+.side{position:sticky;top:0;align-self:flex-start;width:var(--side-w);flex:none;height:100vh;
+  overflow-y:auto;background:var(--bg-side);border-right:1px solid var(--line);padding:16px 12px}
+.main{flex:1;min-width:0;max-width:960px;padding:24px 32px 80px}
+.side-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.side-title{font-weight:700;font-size:14px;flex:1;line-height:1.4}
+.progress{font-size:13px;color:var(--fg-mute);margin:4px 0 12px}
+.progress .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress .bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .2s}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc ol ol{padding-left:14px}
+.toc a{display:flex;gap:6px;align-items:baseline;padding:3px 8px;border-radius:6px;
+  color:var(--fg);text-decoration:none;font-size:13.5px;line-height:1.5}
+.toc a:hover{background:var(--bg-soft)}
+.toc a.current{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.toc .st{flex:none;width:1.2em;text-align:center;font-size:12px;color:var(--fg-mute)}
+.toc .st.done{color:var(--ok)}
+.toc .st.half{color:var(--warn)}
+.icon-btn{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:6px;
+  padding:2px 8px;font:12px var(--sans);cursor:pointer}
+.side-toggle{display:none}
+
+@media (max-width: 860px){
+  html{scroll-padding-top:84px}
+  .layout{display:block}
+  .side{position:sticky;top:0;z-index:10;width:auto;height:auto;max-height:none;
+    border-right:0;border-bottom:1px solid var(--line);padding:8px 16px}
+  .side .toc,.side .progress .bar{display:none}
+  .side.open{max-height:80vh}
+  .side.open .toc,.side.open .progress .bar{display:block}
+  .side-toggle{display:inline-block}
+  .progress{margin:0}
+  .main{padding:16px 16px 64px}
+}
+
+/* ===== 本文 ===== */
+header.doc{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:24px}
+header.doc h1{font-size:26px;line-height:1.4;margin:0 0 8px}
+.meta{font-size:13px;color:var(--fg-mute);display:grid;gap:2px}
+.meta code{font-size:12.5px}
+section.ch{margin:0 0 40px}
+h2{font-size:21px;border-bottom:1px solid var(--line);padding-bottom:4px;margin:32px 0 12px}
+h3{font-size:17px;margin:24px 0 8px}
+h2,h3{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:1px 4px;border-radius:4px}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+th{background:var(--bg-soft)}
+blockquote{margin:12px 0;padding:8px 14px;border-left:4px solid var(--line);background:var(--bg-soft);color:var(--fg)}
+blockquote .by{display:block;font-size:12.5px;color:var(--fg-mute);margin-top:4px}
+
+/* 印のボタン */
+.marks{display:inline-flex;gap:4px;margin-left:auto;font-size:12px;font-weight:400}
+.marks button{border:1px solid var(--line);background:var(--bg);color:var(--fg-mute);
+  border-radius:999px;padding:1px 10px;font:12px/1.6 var(--sans);cursor:pointer}
+.marks button[aria-pressed="true"]{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+
+/* 事実と推測のラベル */
+.tag{display:inline-block;font-size:11.5px;line-height:1.5;padding:0 6px;border-radius:4px;
+  border:1px solid;vertical-align:1px;white-space:nowrap}
+.tag.fact{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+.tag.guess{color:var(--guess);border-color:var(--guess);background:var(--guess-soft)}
+.tag.untested{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+
+/* 囲み */
+.box{border:1px solid var(--line);border-left-width:4px;border-radius:6px;padding:10px 14px;margin:14px 0;background:var(--bg-soft)}
+.box > :first-child{margin-top:0}
+.box > :last-child{margin-bottom:0}
+.box .box-t{font-weight:700;margin-bottom:4px}
+.box.gap{border-color:var(--bad);background:var(--bad-soft)}
+.box.note{border-color:var(--accent);background:var(--accent-soft)}
+.box.tldr{border-color:var(--ok);background:var(--ok-soft)}
+
+/* 確認事項・依頼文のカード */
+.ask{border:1px solid var(--line);border-radius:8px;margin:14px 0;overflow:hidden}
+.ask-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-soft);border-bottom:1px solid var(--line)}
+.ask-head .to{font-size:12.5px;color:var(--fg-mute)}
+.ask-body{padding:10px 14px}
+.ask-body dl{margin:0;display:grid;grid-template-columns:8em 1fr;gap:4px 12px}
+.ask-body dt{font-weight:600;color:var(--fg-mute)}
+.ask-body dd{margin:0}
+@media (max-width: 860px){.ask-body dl{grid-template-columns:1fr}.ask-body dd{margin-bottom:6px}
+  .ask-head{flex-wrap:wrap}.ask-head h3{flex:1 1 100%}}
+
+/* コード片 */
+figure.code{margin:12px 0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+figure.code figcaption{font:12.5px var(--mono);padding:4px 10px;background:var(--bg-soft);border-bottom:1px solid var(--line);
+  overflow-wrap:anywhere}
+figure.code pre{margin:0;padding:6px 0;background:var(--code-bg);overflow-x:auto;font:13px/1.6 var(--mono)}
+figure.code .l{display:block;padding:0 12px 0 0;white-space:pre}
+figure.code .l::before{content:attr(data-n);display:inline-block;width:4.5em;padding-right:12px;text-align:right;
+  color:var(--fg-mute);user-select:none}
+figure.code .l.hl{background:var(--code-hl)}
+figure.code .note{display:block;font:12.5px/1.6 var(--sans);padding:6px 12px;border-top:1px solid var(--line);color:var(--fg-mute)}
+
+/* 図 */
+figure.dg{margin:16px 0;text-align:center}
+figure.dg svg{max-width:100%;height:auto}
+figure.dg figcaption{font-size:13px;color:var(--fg-mute);margin-top:4px}
+.dg text{fill:var(--d-fg);font:13px var(--sans)}
+.dg .mute{fill:var(--d-mute);font-size:11.5px}
+.dg .box{fill:var(--d-box);stroke:var(--d-line);stroke-width:1.2}
+.dg .box.alt{fill:var(--d-box-alt)}
+.dg .box.a{fill:var(--d-a-soft);stroke:var(--d-a)}
+.dg .box.b{fill:var(--d-b-soft);stroke:var(--d-b)}
+.dg .box.c{fill:var(--d-c-soft);stroke:var(--d-c)}
+.dg .box.d{fill:var(--d-d-soft);stroke:var(--d-d)}
+.dg .edge{stroke:var(--d-line);stroke-width:1.4;fill:none}
+.dg .edge.dash{stroke-dasharray:5 4}
+.dg .arrow{fill:var(--d-line)}
+
+/* 出典 */
+a.cite{font-size:.8em;vertical-align:super;text-decoration:none;margin-left:1px}
+ol.refs{padding-left:0;list-style:none;font-size:13.5px}
+ol.refs li{padding:6px 0;border-bottom:1px dashed var(--line);display:grid;grid-template-columns:4em 1fr;gap:8px}
+ol.refs li:target{background:var(--warn-soft)}
+ol.refs .rid{font-family:var(--mono);color:var(--fg-mute)}
+ol.refs .back{margin-left:6px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="side" id="side" aria-label="目次">
+    <div class="side-head">
+      <button class="icon-btn side-toggle" id="side-toggle" aria-expanded="false">目次</button>
+      <div class="side-title">TITLE</div>
+      <button class="icon-btn" id="theme-btn" title="テーマ切り替え">自動</button>
+    </div>
+    <div class="progress" id="progress">進捗 <b>0/0</b><div class="bar"><i></i></div></div>
+    <div class="toc" id="toc"></div>
+  </nav>
+
+  <main class="main">
+    <header class="doc">
+      <h1>TITLE</h1>
+      <div class="meta">
+        <div>対象: <code>REPO</code> / 基準コミット <code>BRANCH @ HASH</code>（本文の行番号はこの時点）</div>
+        <div>最終更新: YYYY-MM-DD HH:MM / 情報元は本文の [n] から末尾の参照一覧へ</div>
+        <div>ラベル: <span class="tag fact">確認済み</span> 実データや実行で確かめた
+          <span class="tag untested">未検証</span> コードから読んだが動かしていない
+          <span class="tag guess">推測</span> 根拠が間接的</div>
+      </div>
+    </header>
+
+    <!-- 章は section.ch。id を付けた h2/h3 が目次になる。
+         data-mark="chapter" → 「読んだ」「理解した」 / data-mark="todo" → 「実施済み」「回答済み」 -->
+
+    <section class="ch">
+      <h2 id="summary" data-mark="chapter">要約</h2>
+      <div class="box tldr"><div class="box-t">結論</div><p>3行以内で。各文に出典を付ける<a class="cite" href="#ref-1">[1]</a>。</p></div>
+    </section>
+
+    <section class="ch">
+      <h2 id="prereq" data-mark="chapter">前提知識</h2>
+      <h3 id="prereq-terms" data-mark="chapter">用語と管理単位</h3>
+      <table>
+        <tr><th>用語</th><th>定義</th><th>管理単位</th><th>情報元</th></tr>
+        <tr><td>TERM</td><td>…</td><td>…</td><td><a class="cite" href="#ref-1">[1]</a></td></tr>
+      </table>
+    </section>
+
+    <section class="ch">
+      <h2 id="main-topic" data-mark="chapter">本題</h2>
+      <figure class="dg">
+        <svg viewBox="0 0 520 110" width="520" role="img" aria-label="A から B を経て C へ流れる">
+          <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+          <rect class="box a" x="10" y="30" width="130" height="50" rx="6"/><text x="75" y="60" text-anchor="middle">A</text>
+          <rect class="box" x="195" y="30" width="130" height="50" rx="6"/><text x="260" y="60" text-anchor="middle">B</text>
+          <rect class="box b" x="380" y="30" width="130" height="50" rx="6"/><text x="445" y="60" text-anchor="middle">C</text>
+          <path class="edge" d="M140,55 H193" marker-end="url(#ah)"/>
+          <path class="edge" d="M325,55 H378" marker-end="url(#ah)"/>
+          <text class="mute" x="167" y="47" text-anchor="middle">読む</text>
+        </svg>
+        <figcaption>図1 キャプション</figcaption>
+      </figure>
+
+      <figure class="code" data-start="120" data-hl="2,4-5">
+        <figcaption>src/main/java/Foo.java:120-125</figcaption>
+<pre>void load() {
+    var rows = dao.findAll();
+    for (var r : rows) {
+        cache.put(r.id(), r);
+        index.add(r.key());
+    }</pre>
+        <span class="note">121: 全件を毎回読む。123-124: キャッシュと索引を両方更新する</span>
+      </figure>
+
+      <div class="box gap"><div class="box-t">仕様と実態のずれ</div>
+        <p>仕様上は X を使うが、実データでは使われていない <span class="tag fact">確認済み</span>（2026-10-15、<code>db.table</code> を集計<a class="cite" href="#ref-2">[2]</a>）。</p></div>
+    </section>
+
+    <section class="ch">
+      <h2 id="asks">確認事項</h2>
+      <div class="ask">
+        <div class="ask-head"><h3 id="ask-1" data-mark="todo" style="margin:0;font-size:15px">Q1. TITLE</h3>
+          <span class="to">宛先: WHO</span>
+          <button class="icon-btn copy" type="button">文面をコピー</button></div>
+        <div class="ask-body"><dl>
+          <dt>経緯</dt><dd>…</dd>
+          <dt>関係する仕組み</dt><dd>…</dd>
+          <dt>今の状態</dt><dd>…</dd>
+          <dt>確認したいこと</dt><dd>…</dd>
+        </dl></div>
+      </div>
+    </section>
+
+    <section class="ch">
+      <h2 id="refs">参照一覧</h2>
+      <ol class="refs">
+        <li id="ref-1"><span class="rid">[1]</span><span><a href="URL">タイトル</a> — 種別・日時・場所・発言者</span></li>
+        <li id="ref-2"><span class="rid">[2]</span><span>DB: <code>SELECT …</code>（YYYY-MM-DD 実行、接続先）</span></li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var root = document.documentElement;
+  var meta = document.querySelector('meta[name="doc-id"]');
+  var KEY = (meta && meta.content) || ('explainer-html:' + location.pathname);
+  function load(k, d){ try { var v = localStorage.getItem(KEY + ':' + k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } }
+  function save(k, v){ try { localStorage.setItem(KEY + ':' + k, JSON.stringify(v)); } catch(e){} }
+
+  /* --- テーマ: 自動 → ライト → ダーク --- */
+  var THEMES = ['auto', 'light', 'dark'], LABEL = {auto:'自動', light:'ライト', dark:'ダーク'};
+  var themeBtn = document.getElementById('theme-btn');
+  function applyTheme(t){
+    if (t === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+    themeBtn.textContent = LABEL[t];
+  }
+  var theme = load('theme', 'auto'); if (THEMES.indexOf(theme) < 0) theme = 'auto';
+  applyTheme(theme);
+  themeBtn.addEventListener('click', function(){
+    theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]; applyTheme(theme); save('theme', theme);
+  });
+
+  /* --- 印の定義 --- */
+  var KINDS = {
+    chapter: {opts: [['read', '読んだ'], ['understood', '理解した']], done: ['understood'], half: ['read']},
+    todo:    {opts: [['done', '実施済み'], ['answered', '回答済み']], done: ['done', 'answered'], half: []}
+  };
+  var marks = load('marks', {}); if (!marks || typeof marks !== 'object') marks = {};
+  var markables = [].slice.call(document.querySelectorAll('[data-mark][id]'));
+
+  /* --- 目次を h2/h3 から作る --- */
+  var heads = [].slice.call(document.querySelectorAll('.main h2[id], .main h3[id]'));
+  var toc = document.getElementById('toc'), tocLinks = {};
+  var ol = document.createElement('ol'), sub = null;
+  heads.forEach(function(h){
+    var li = document.createElement('li'), a = document.createElement('a');
+    a.href = '#' + h.id;
+    var st = document.createElement('span'); st.className = 'st';
+    var tx = document.createElement('span'); tx.textContent = h.textContent.trim();
+    a.appendChild(st); a.appendChild(tx); li.appendChild(a);
+    tocLinks[h.id] = a;
+    if (h.tagName === 'H2' || !ol.lastElementChild) { ol.appendChild(li); sub = null; }
+    else { if (!sub) { sub = document.createElement('ol'); ol.lastElementChild.appendChild(sub); } sub.appendChild(li); }
+  });
+  toc.appendChild(ol);
+
+  /* --- 印のボタンを見出しに付ける --- */
+  markables.forEach(function(el){
+    var kind = KINDS[el.getAttribute('data-mark')]; if (!kind) return;
+    var wrap = document.createElement('span'); wrap.className = 'marks';
+    kind.opts.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.textContent = o[1]; b.setAttribute('data-v', o[0]);
+      b.addEventListener('click', function(){
+        marks[el.id] = marks[el.id] === o[0] ? null : o[0];
+        if (!marks[el.id]) delete marks[el.id];
+        save('marks', marks); render();
+      });
+      wrap.appendChild(b);
+    });
+    el.appendChild(wrap);
+  });
+
+  function render(){
+    var total = 0, done = 0;
+    markables.forEach(function(el){
+      var kind = KINDS[el.getAttribute('data-mark')]; if (!kind) return;
+      var v = marks[el.id]; total++;
+      var isDone = kind.done.indexOf(v) >= 0, isHalf = kind.half.indexOf(v) >= 0;
+      if (isDone) done++;
+      [].forEach.call(el.querySelectorAll('.marks button'), function(b){
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v));
+      });
+      var a = tocLinks[el.id];
+      if (a) { var st = a.querySelector('.st'); st.className = 'st' + (isDone ? ' done' : isHalf ? ' half' : '');
+        st.textContent = isDone ? '✓' : isHalf ? '◐' : '○'; }
+    });
+    var p = document.getElementById('progress');
+    p.querySelector('b').textContent = done + '/' + total;
+    p.querySelector('.bar i').style.width = total ? (done * 100 / total) + '%' : '0';
+  }
+  render();
+
+  /* --- 今読んでいる章のハイライト --- */
+  function spy(){
+    var cur = heads[0], y = window.innerHeight * 0.25;
+    heads.forEach(function(h){ if (h.getBoundingClientRect().top <= y) cur = h; });
+    Object.keys(tocLinks).forEach(function(id){ tocLinks[id].classList.toggle('current', cur && id === cur.id); });
+  }
+  var ticking = false;
+  window.addEventListener('scroll', function(){ if (!ticking) { ticking = true; requestAnimationFrame(function(){ spy(); ticking = false; }); } }, {passive: true});
+  spy();
+
+  /* --- スマホ幅の折りたたみ --- */
+  var side = document.getElementById('side'), tg = document.getElementById('side-toggle');
+  tg.addEventListener('click', function(){ var o = side.classList.toggle('open'); tg.setAttribute('aria-expanded', String(o)); });
+  toc.addEventListener('click', function(e){ if (e.target.closest('a')) { side.classList.remove('open'); tg.setAttribute('aria-expanded', 'false'); } });
+
+  /* --- コード片: 行番号と注目行 (data-start, data-hl="2,4-5" は片内の相対行) --- */
+  [].forEach.call(document.querySelectorAll('figure.code[data-start]'), function(fig){
+    var pre = fig.querySelector('pre'); if (!pre) return;
+    var start = parseInt(fig.getAttribute('data-start'), 10) || 1, hl = {};
+    (fig.getAttribute('data-hl') || '').split(',').forEach(function(s){
+      var m = s.trim().match(/^(\d+)(?:-(\d+))?$/); if (!m) return;
+      for (var i = +m[1]; i <= +(m[2] || m[1]); i++) hl[i] = true;
+    });
+    var lines = pre.textContent.replace(/\n$/, '').split('\n');
+    pre.textContent = '';
+    lines.forEach(function(t, i){
+      var s = document.createElement('span'); s.className = 'l' + (hl[i + 1] ? ' hl' : '');
+      s.setAttribute('data-n', start + i); s.textContent = t || ' '; pre.appendChild(s);
+    });
+  });
+
+  /* --- 参照一覧から本文の最初の引用へ戻るリンク --- */
+  [].forEach.call(document.querySelectorAll('ol.refs li[id]'), function(li){
+    var c = document.querySelector('a.cite[href="#' + li.id + '"]'); if (!c) return;
+    if (!c.id) c.id = 'cite-' + li.id;
+    var b = document.createElement('a'); b.className = 'back'; b.href = '#' + c.id; b.textContent = '↩ 本文';
+    li.lastElementChild.appendChild(b);
+  });
+
+  /* --- 確認事項の文面コピー --- */
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('button.copy'); if (!btn) return;
+    var card = btn.closest('.ask'), body = card.querySelector('.ask-body');
+    var lines = [], dts = body.querySelectorAll('dt');
+    [].forEach.call(dts, function(dt){ var dd = dt.nextElementSibling; lines.push('【' + dt.textContent.trim() + '】\n' + (dd ? dd.innerText.trim() : '')); });
+    var text = lines.join('\n\n'), old = btn.textContent;
+    function fin(ok){ btn.textContent = ok ? 'コピーした' : 'コピー失敗'; setTimeout(function(){ btn.textContent = old; }, 1500); }
+    try { navigator.clipboard.writeText(text).then(function(){ fin(true); }, function(){ fin(false); }); } catch(err){ fin(false); }
+  });
+})();
+</script>
+</body>
+</html>
