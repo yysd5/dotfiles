@@ -72,7 +72,15 @@
       "Bash(deno publish:*)",
       "Bash(docker system prune -af)",
       "Bash(fdisk:*)",
-      "Bash(git push *)",
+      "Bash(git branch -D *)",
+      "Bash(git checkout -- .)",
+      "Bash(git checkout .)",
+      "Bash(git clean *)",
+      "Bash(git reset --hard*)",
+      "Bash(git restore -- .)",
+      "Bash(git restore .)",
+      "Bash(git stash clear*)",
+      "Bash(git stash drop*)",
       "Bash(mkfs:*)",
       "Bash(npm publish:*)",
       "Bash(rm -rf .git)",
@@ -115,6 +123,17 @@
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-protected-push.sh"
+          }
+        ]
+      }
+    ],
     "Notification": [
       {
         "matcher": "",
