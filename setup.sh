@@ -167,6 +167,10 @@ install_claude() {
   backup_and_link "$HOME/.claude/settings.json" "$DOTFILES_DIR/claude/settings.json"
   backup_and_link "$HOME/.claude/statusline.sh" "$DOTFILES_DIR/claude/statusline.sh"
 
+  mkdir -p "$HOME/.claude/hooks"
+  backup_and_link "$HOME/.claude/hooks/block-protected-push.sh" \
+    "$DOTFILES_DIR/claude/hooks/block-protected-push.sh"
+
   # Skills/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
   # 旧方式(ディレクトリ丸ごとsymlink)が残っているとapmが正しくデプロイできないため先に解除する
   remove_symlink_if_exists "$HOME/.claude/skills"
