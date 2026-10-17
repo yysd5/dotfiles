@@ -40,6 +40,26 @@ https://github.com/tmux-plugins/tpm
 
 claude code
 
+##### git push policy
+
+- `git push` is not allowed by default (Claude asks for confirmation).
+- To allow it in a repository, add the following to `.claude/settings.local.json` there:
+
+  ```json
+  {
+    "permissions": {
+      "allow": ["Bash(git push *)"]
+    }
+  }
+  ```
+
+- Even when allowed, the PreToolUse hook `claude/hooks/block-protected-push.sh` always blocks
+  pushes to protected branches (`main`, `master`, `develop`, `release`, `release/*`)
+  and force pushes other than `--force-with-lease`.
+- The hook parses command strings, so it cannot catch pushes via `sh -c` or git aliases.
+  Use branch protection on the remote as well.
+- Run `bash claude/hooks/test-block-protected-push.sh` to test the hook.
+
 ### Usage
 
 #### Clone the repository to your home directory
