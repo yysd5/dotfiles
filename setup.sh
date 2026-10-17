@@ -38,24 +38,6 @@ remove_symlink_if_exists() {
   fi
 }
 
-sync_antigravity_commands() {
-  log "Generating Antigravity CLI Skill copies of Commands from .apm/prompts..."
-  for f in "$DOTFILES_DIR"/.apm/prompts/*.prompt.md; do
-    local name
-    name="$(basename "$f" .prompt.md)"
-    local dest_dir="$DOTFILES_DIR/gemini/antigravity-cli/skills/$name"
-    mkdir -p "$dest_dir"
-    {
-      echo "---"
-      echo "name: $name"
-      grep '^description:' "$f"
-      echo "---"
-      echo ""
-      awk '/^---$/{c++; next} c>=2' "$f"
-    } >"$dest_dir/SKILL.md"
-  done
-}
-
 backup_and_copy() {
   local source="$1"
   local target="$2"
@@ -185,23 +167,15 @@ install_claude() {
   backup_and_link "$HOME/.claude/settings.json" "$DOTFILES_DIR/claude/settings.json"
   backup_and_link "$HOME/.claude/statusline.sh" "$DOTFILES_DIR/claude/statusline.sh"
 
-  # Skills/Commands/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
+  # Skills/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
   # 旧方式(ディレクトリ丸ごとsymlink)が残っているとapmが正しくデプロイできないため先に解除する
   remove_symlink_if_exists "$HOME/.claude/skills"
   remove_symlink_if_exists "$HOME/.claude/commands"
   remove_symlink_if_exists "$HOME/.claude/agents"
 
   install_apm
-  log "Deploying Claude skills/commands/agents via apm..."
+  log "Deploying Claude skills/agents via apm..."
   (cd "$DOTFILES_DIR" && apm install --root "$HOME" --target claude)
-
-  # 引数付きでapm移行から除外しているCommandは個別にリンクする
-  if [ -d "$DOTFILES_DIR/claude/commands" ]; then
-    log "Linking remaining Claude commands (not yet apm-managed)..."
-    for f in "$DOTFILES_DIR"/claude/commands/*.md; do
-      backup_and_link "$HOME/.claude/commands/$(basename "$f")" "$f"
-    done
-  fi
 }
 
 install_gemini() {
@@ -212,7 +186,7 @@ install_gemini() {
   backup_and_link "$HOME/.gemini/settings.json" "$DOTFILES_DIR/gemini/settings.json"
   backup_and_link "$HOME/.gemini/GEMINI.md" "$DOTFILES_DIR/gemini/GEMINI.md"
 
-  # Skills/Commands/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
+  # Skills/Agentsは.apm/配下のソースからapmでデプロイする（symlinkでの共有から移行）
   # 旧方式(ディレクトリ丸ごとsymlink)が残っているとapmが正しくデプロイできないため先に解除する
   # SkillはGemini CLI公式サポートの~/.agents/skills/エイリアスにデプロイされる
   remove_symlink_if_exists "$HOME/.gemini/skills"
@@ -220,16 +194,8 @@ install_gemini() {
   remove_symlink_if_exists "$HOME/.gemini/agents"
 
   install_apm
-  log "Deploying Gemini skills/commands/agents via apm..."
+  log "Deploying Gemini skills/agents via apm..."
   (cd "$DOTFILES_DIR" && apm install --root "$HOME" --target gemini)
-
-  # 引数付きでapm移行から除外しているCommandは個別にリンクする
-  if [ -d "$DOTFILES_DIR/gemini/commands" ]; then
-    log "Linking remaining Gemini commands (not yet apm-managed)..."
-    for f in "$DOTFILES_DIR"/gemini/commands/*.toml; do
-      backup_and_link "$HOME/.gemini/commands/$(basename "$f")" "$f"
-    done
-  fi
 
   if [ -d "$DOTFILES_DIR/gemini/policies" ]; then
     log "Linking Gemini policies directory..."
@@ -243,10 +209,6 @@ install_antigravity() {
 
   backup_and_link "$HOME/.gemini/antigravity-cli/settings.json" "$DOTFILES_DIR/gemini/antigravity-cli/settings.json"
   backup_and_link "$HOME/.gemini/antigravity-cli/statusline.py" "$DOTFILES_DIR/gemini/antigravity-cli/statusline.py"
-
-  # Antigravity CLIはCommand機構を持たないため、.apm/prompts/をSkill形式に変換して
-  # gemini/antigravity-cli/skills/配下に配置する(実行結果はリポジトリにcommitする)
-  sync_antigravity_commands
 
   if [ -d "$DOTFILES_DIR/gemini/antigravity-cli/skills" ]; then
     log "Linking Antigravity skills directory..."

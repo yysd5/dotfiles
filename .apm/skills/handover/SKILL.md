@@ -1,6 +1,6 @@
 ---
 name: handover
-description: "セッション終了時にHANDOVER.mdを生成し、次のセッションへ文脈を引き継ぐ"
+description: セッション終了時にHANDOVER.mdを生成し、次のセッションへ文脈を引き継ぐ。「引き継ぎを作って」「handoverして」と言われたときに使用する。
 ---
 
 # セッション引き継ぎノート生成

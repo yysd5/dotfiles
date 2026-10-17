@@ -1,10 +1,12 @@
 ---
-description: "Linuxサーバーのパフォーマンスを分析(60秒分析チェックリストに基づく)"
+name: analyze-linux-performance-in-60s
+description: Linuxサーバーのパフォーマンスを60秒分析チェックリストに基づいて分析する。サーバーの負荷調査やボトルネック特定を依頼されたときに使用する。
 ---
+
 # Linuxパフォーマンス分析 (60秒分析チェックリスト)
 
 ## 概要
-このコマンドは、Linuxサーバーの負荷状況を「Linux Performance Analysis in 60,000 Milliseconds」の手順に基づいて分析します。
+このスキルでは、Linuxサーバーの負荷状況を「Linux Performance Analysis in 60,000 Milliseconds」の手順に基づいて分析します。
 サーバー上で約1分間のデータ収集を行い、その結果を元にボトルネックを特定します。
 
 (出典: 詳解システムパフォーマンス第2版)
