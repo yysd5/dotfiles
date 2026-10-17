@@ -1,6 +1,6 @@
 # apm (Agent Package Manager) 管理ガイド
 
-Claude Code / Gemini CLI / Antigravity CLI / Codex CLIのSkill・Command・Agentを、
+Claude Code / Gemini CLI / Antigravity CLI / Codex CLIのSkill・Agentを、
 [microsoft/apm](https://github.com/microsoft/apm) を使って
 `.apm/` 配下に一元管理している。
 MCPサーバーはapm管理の対象外([MCPサーバーの管理方針](#mcpサーバーの管理方針)を参照)。
@@ -23,9 +23,8 @@ apmを導入し、`.apm/` 配下を単一のソースとして、
 
 - 対象: Claude Code, Gemini CLI, Antigravity CLI, Codex CLI
     - Antigravity CLI・Codex CLIの詳細は[Antigravity CLI / Codex CLI](#antigravity-cli--codex-cli)を参照
-- 対象外(今後の課題):
-    - 引数(`$ARGUMENTS`)を使うCommand 6個
-        - 詳細は[既知の制約](#既知の制約)を参照
+- Commandは使わない
+    - スラッシュで呼びたいものもSkillとして作る([Commandを使わない理由](#commandを使わない理由)を参照)
 
 ## アーキテクチャ
 
@@ -36,7 +35,6 @@ dotfiles/
   apm.yml                       # マニフェスト
   .apm/
     skills/<name>/SKILL.md      # Skill
-    prompts/<name>.prompt.md    # Command
     agents/<name>.agent.md      # Agent
 ```
 
@@ -50,14 +48,13 @@ dotfiles/
 | 種類    | Claude Code                        | Gemini CLI                                         | Codex CLI                          |
 | ------- | ---------------------------------- | -------------------------------------------------- | ---------------------------------- |
 | Skill   | `~/.claude/skills/<name>/SKILL.md` | `~/.agents/skills/<name>/SKILL.md`(公式エイリアス) | `~/.agents/skills/<name>/SKILL.md` |
-| Command | `~/.claude/commands/<name>.md`     | `~/.gemini/commands/<name>.toml`                   | (非対応)                           |
 | Agent   | `~/.claude/agents/<name>.md`       | (今回は未使用)                                     | `~/.codex/agents/<name>.md`        |
 
 `~/.agents/skills/` はGemini CLI公式サポートのエイリアスで、
 `~/.gemini/skills/` より優先される。
 
-Antigravity CLIはapm組み込みターゲットの対象外で、独自の変換ステップ
-([Antigravity CLI / Codex CLI](#antigravity-cli--codex-cli)参照)でSkill化している。
+Antigravity CLIはapm組み込みターゲットの対象外で、symlinkで共有している
+([Antigravity CLI / Codex CLI](#antigravity-cli--codex-cli)参照)。
 
 ### setup.shとの関係
 
@@ -100,6 +97,8 @@ apm --version
     (本文)
     ```
 
+    スラッシュで呼べるようにしたいSkillは `user-invocable: false` を書かない。
+
 2. Claude Code / Gemini CLIどちらの用語にも依存しない書き方にする
 
     「Editツール」「Readツール」のようなツール固有の名前ではなく、
@@ -123,38 +122,15 @@ apm --version
 
 3. `~/.claude/skills/`, `~/.agents/skills/` から消えたことを確認してcommit・PRを作成する
 
-## Commandを追加する
+## Commandを使わない理由
 
-1. 引数を使わないCommandであることを確認する
+以前はCommand(`.apm/prompts/`, `claude/commands/`, `gemini/commands/`)も
+管理していたが、2026-10に全廃した。
 
-    引数付きCommandは現状apm管理の対象外([既知の制約](#既知の制約)を参照)。
-
-2. `.apm/prompts/<name>.prompt.md` を作成する
-
-    ```markdown
-    ---
-    description: コマンドピッカーに表示される説明(必須)
-    ---
-
-    (プロンプト本文)
-    ```
-
-3. サブディレクトリには置かない
-
-    `.apm/prompts/git/foo.prompt.md` のようなネストは
-    apmにデプロイされず無視されるため、フラットな構成にする。
-
-4. 反映を確認してcommit・PRを作成する
-
-    ```bash
-    apm install --root "$HOME" --target claude,gemini
-    ```
-
-## Commandを削除する
-
-1. `.apm/prompts/<name>.prompt.md` を削除する
-2. 再度 `apm install --root "$HOME" --target claude,gemini` を実行する
-   (stale filesとして自動削除される)
+- Skillもスラッシュで呼べるため、Commandでしかできないことが無い
+- Skillは依頼文から自動で発動でき、Antigravity CLIへもsymlinkで共有できる
+- 引数付きCommandはapmのGemini向け変換にバグがあり、
+  Claude用・Gemini用の手動二重管理が残っていた
 
 ## MCPサーバーの管理方針
 
@@ -241,30 +217,15 @@ Antigravity CLIが実際にSkillを読み込むのは `~/.gemini/antigravity-cli
 `~/.agents/skills/`にしかデプロイせず実態と合わないため、**apmのantigravity
 ターゲットは使わない**。
 
-代わりに以下の2本立てで対応している。
-
-- Skill: `gemini/antigravity-cli/skills/<name>` を `.apm/skills/<name>` への
-  symlinkにしている(既存の仕組みのまま)
-- Command: Antigravity CLIにはCommand機構が無く、Commandに相当するものも
-  `SKILL.md`として表現する必要があるため、`setup.sh`の
-  `sync_antigravity_commands()`が`.apm/prompts/<name>.prompt.md`から
-  `gemini/antigravity-cli/skills/<name>/SKILL.md`
-  (frontmatterに`name:`を追加した形)を生成する
-
-`sync_antigravity_commands()` は `install_antigravity()` (`make antigravity-cli`)
-実行のたびに走るため、Commandを追加・修正・削除したら
-`make antigravity-cli` を実行して生成結果をcommitする。
-
-引数付きの6Command(`.apm/prompts/`に存在しない)は生成対象外で、
-`gemini/antigravity-cli/skills/`配下に従来通り手動管理のまま残っている。
+代わりに `gemini/antigravity-cli/skills/<name>` を `.apm/skills/<name>` への
+symlinkにしている。Skillを追加・削除したら、このsymlinkも合わせて追加・削除する。
 
 ### Codex CLI
 
 このMacには未インストールのため実機での動作は未検証。
 
 `setup.sh`の`install_codex()`から`apm install --root "$HOME" --target codex`を
-実行し、Skill(`~/.agents/skills/`)とAgent(`~/.codex/agents/`)をデプロイする
-(Commandは非対応。Codexに元々スラッシュコマンド機構が無いため妥当)。
+実行し、Skill(`~/.agents/skills/`)とAgent(`~/.codex/agents/`)をデプロイする。
 
 検証時の注意: `--root`と`--target codex`の組み合わせで、同一プロジェクト
 ディレクトリ内で他の`apm install`呼び出し(特に`--root`無しの実行)を挟むと、
@@ -273,35 +234,6 @@ Antigravity CLIが実際にSkillを読み込むのは `~/.gemini/antigravity-cli
 現象を確認した。実際にCodexを使い始めて反映されない場合は、
 `~/apm.lock.yaml`を確認するか、dotfilesリポジトリのルートで
 `--root`を付けずに`apm install --target codex`を試す。
-
-## 既知の制約
-
-### 引数付きCommandはapm管理の対象外
-
-apm 0.23.1のGemini向けプロンプト変換にバグがある。
-
-`input:` で名前付き引数を宣言した場合、
-Claude向けは正しく `$name` に変換されるが、
-Gemini向けは `${input:name}` のまま出力される。
-
-Gemini CLIのカスタムコマンドは `{{args}}` のみサポートのため、
-このまま配布すると実行時に引数が置換されず壊れる。
-
-そのため、以下の6つの引数付きCommandは今回のapm移行対象から除外し、
-`claude/commands/*.md`, `gemini/commands/*.toml` に手動管理のまま残している。
-
-- `code-review` / `code-review-current-branch-local`
-- `complete-work-day`
-- `explain-current-branch-local`
-- `review-docs`
-- `start-develop-project`
-- `start-task`
-
-これらを追加・削除・修正する場合は、
-`claude/commands/` と `gemini/commands/` の両方を直接編集する
-(従来通りの手動二重管理)。
-
-apmがこのバグを修正したら、apm管理への統合を再検討する。
 
 ## トラブルシューティング
 
