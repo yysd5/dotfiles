@@ -1,4 +1,4 @@
-.PHONY: all help brew zsh tmux aqua gitconfig lazygit iterm2 nvim claude gemini antigravity-cli codex intellij npm obsidian vrapper ghostty
+.PHONY: all help brew zsh tmux aqua gitconfig lazygit nvim claude gemini antigravity-cli codex intellij npm obsidian vrapper ghostty
 
 TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 
@@ -22,9 +22,6 @@ gitconfig: ## Configure git
 
 lazygit: ## Install lazygit config
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh lazygit
-
-iterm2: ## Install iTerm2 config
-	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh iterm2
 
 nvim: zsh ## Setup Neovim config (~/.config/nvim)
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh nvim

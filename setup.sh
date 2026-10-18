@@ -135,14 +135,6 @@ install_aqua() {
   aqua i -a
 }
 
-install_iterm2() {
-  local target="$HOME/Documents/ConfigFiles/iTerm2"
-  local source="$DOTFILES_DIR/iterm2/config"
-  log "Setting up iTerm2 config..."
-  mkdir -p "$(dirname "$target")"
-  backup_and_link "$target" "$source"
-}
-
 install_apm() {
   if command -v apm &>/dev/null; then
     log "apm already installed, skipping"
@@ -285,7 +277,7 @@ install_ghostty() {
 
 main() {
   if [ $# -eq 0 ]; then
-    echo "Usage: $0 [all|zsh|nvim|tmux|lazygit|brew|aqua|gitconfig|iterm2|claude|gemini|antigravity-cli|codex|intellij|npm|obsidian|vrapper|ghostty]"
+    echo "Usage: $0 [all|zsh|nvim|tmux|lazygit|brew|aqua|gitconfig|claude|gemini|antigravity-cli|codex|intellij|npm|obsidian|vrapper|ghostty]"
     exit 1
   fi
 
@@ -300,7 +292,6 @@ main() {
       install_npm_global
       install_gitconfig
       install_lazygit
-      install_iterm2
       install_nvim
       install_claude
       install_gemini
@@ -320,7 +311,6 @@ main() {
       ;;
     aqua) install_aqua ;;
     gitconfig) install_gitconfig ;;
-    iterm2) install_iterm2 ;;
     claude) install_claude ;;
     gemini) install_gemini ;;
     antigravity-cli) install_antigravity ;;
