@@ -3,7 +3,7 @@
 A collection of my personal dotfiles and configuration settings for development tools,
 designed for easy setup and consistent experience across different machines.
 
-## NeoVim/iTerm2 Screenshot
+## NeoVim Screenshot
 
 - 2026-01-05
     - neovim: Nightfox theme
@@ -94,14 +94,6 @@ make help
 
 ### ⚠️ Settings Note
 
-#### iTerm2
-
-To use the iTerm2 config managed in this repository, make sure the following setting is enabled in iTerm2:
-
-1. Open **iTerm2 → Preferences → General → Settings**
-2. Enable: ✅ **Load settings from a custom folder or URL**
-3. Set the folder path to: ~/Documents/ConfigFiles/iTerm2
-
 #### brew
 
 Sometimes, not everything gets installed properly with a single `brew install`.
@@ -160,6 +152,11 @@ as they are not the kind that can simply be placed
 somewhere on the local machine to be automatically loaded.
 
 - bettertouchtool
+
+## Archived configs
+
+Configs for tools that are no longer in use are kept in `archive/`.
+See [archive/README.md](./archive/README.md) for details.
 
 ## Tools that are not managed by dotfiles
 
