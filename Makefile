@@ -1,4 +1,4 @@
-.PHONY: all help brew zsh tmux aqua gitconfig lazygit iterm2 nvim claude gemini antigravity-cli codex intellij npm obsidian amazonq rovodev vrapper ghostty
+.PHONY: all help brew zsh tmux aqua gitconfig lazygit iterm2 nvim claude gemini antigravity-cli codex intellij npm obsidian vrapper ghostty
 
 TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 
@@ -49,12 +49,6 @@ npm: ## Install npm global packages
 
 obsidian: ## Setup Obsidian vimrc config
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh obsidian
-
-amazonq: ## Setup Amazon Q config
-	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh amazonq
-
-rovodev: ## Setup Rovodev CLI config (~/.rovodev/.agent.md)
-	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh rovodev
 
 vrapper: ## Setup Vrapper config (~/.vrapperrc)
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh vrapper

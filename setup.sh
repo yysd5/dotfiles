@@ -261,20 +261,6 @@ install_obsidian() {
   backup_and_link "$obsidian_dir/.obsidian.vimrc" "$DOTFILES_DIR/obsidian/.obsidian.vimrc"
 }
 
-install_amazonq() {
-  log "Setting up Amazon Q config..."
-  mkdir -p "$HOME/.aws/amazonq"
-  backup_and_link "$HOME/.aws/amazonq/mcp.json" "$DOTFILES_DIR/aws/amazonq/mcp.json"
-  mkdir -p "$HOME/.amazonq"
-  backup_and_link "$HOME/.amazonq/rules" "$DOTFILES_DIR/amazonq/rules"
-}
-
-install_rovodev() {
-  log "Setting up Rovodev CLI config..."
-  mkdir -p "$HOME/.rovodev"
-  backup_and_link "$HOME/.rovodev/.agent.md" "$DOTFILES_DIR/rovodev/agent.md"
-}
-
 install_vrapper() {
   log "Setting up Vrapper config..."
   backup_and_link "$HOME/.vrapperrc" "$DOTFILES_DIR/vrapper/.vrapperrc"
@@ -299,7 +285,7 @@ install_ghostty() {
 
 main() {
   if [ $# -eq 0 ]; then
-    echo "Usage: $0 [all|zsh|nvim|tmux|lazygit|brew|aqua|gitconfig|iterm2|claude|gemini|antigravity-cli|codex|intellij|npm|obsidian|amazonq|rovodev|vrapper|ghostty]"
+    echo "Usage: $0 [all|zsh|nvim|tmux|lazygit|brew|aqua|gitconfig|iterm2|claude|gemini|antigravity-cli|codex|intellij|npm|obsidian|vrapper|ghostty]"
     exit 1
   fi
 
@@ -321,8 +307,6 @@ main() {
       install_codex
       install_intellij
       install_obsidian
-      install_amazonq
-      install_rovodev
       install_vrapper
       install_ghostty
       ;;
@@ -344,8 +328,6 @@ main() {
     intellij) install_intellij ;;
     npm) install_npm_global ;;
     obsidian) install_obsidian ;;
-    amazonq) install_amazonq ;;
-    rovodev) install_rovodev ;;
     vrapper) install_vrapper ;;
     ghostty) install_ghostty ;;
     *)
