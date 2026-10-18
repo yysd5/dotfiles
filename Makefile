@@ -54,6 +54,6 @@ ghostty: ## Setup Ghostty config
 	LOG_TIMESTAMP=$(TIMESTAMP) ./setup.sh ghostty
 
 help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $1, $2}'
+	@grep -E '^[a-zA-Z_-]+:.*## .*$$' Makefile | sort | awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 
