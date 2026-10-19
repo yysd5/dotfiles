@@ -1,0 +1,50 @@
+name: nvim
+
+on:
+  pull_request:
+    paths:
+      - "nvim/**"
+      - ".github/scripts/nvim-smoke.lua"
+      - ".github/workflows/nvim.yml"
+  push:
+    branches: [main]
+    paths:
+      - "nvim/**"
+      - ".github/scripts/nvim-smoke.lua"
+      - ".github/workflows/nvim.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    # 新しいMacでのセットアップと同じく、brewのstable版で確認する
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Neovim
+        run: |
+          brew install neovim ripgrep
+          nvim --version
+
+      - name: Link config
+        run: |
+          mkdir -p ~/.config
+          ln -s "$GITHUB_WORKSPACE/nvim" ~/.config/nvim
+
+      - name: Install plugins (lazy-lock.json)
+        run: nvim --headless "+Lazy! restore" +qa
+
+      # 未インストールのlinterはファイルを開いたときにエラーになるため先に入れる
+      - name: Install mason tools
+        run: nvim --headless "+MasonInstall lua-language-server" "+MasonToolsInstallSync" +qa
+
+      - name: Smoke test
+        run: nvim --headless -c "luafile .github/scripts/nvim-smoke.lua"
