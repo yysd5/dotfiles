@@ -164,7 +164,7 @@ apmのMCP対応が成熟し、マシン間で共有したいMCPサーバーが
 | ----------- | ------------------------------------------------------------------- |
 | Claude Code | `~/.claude.json` (`claude mcp add -s user`で追加)                   |
 | Gemini CLI  | `~/.gemini/settings.local.json`                                     |
-| Codex CLI   | `codex/config.toml`に手書き(従来どおり。シークレット無しのもののみ) |
+| Codex CLI   | `~/.codex/config.toml` (アプリが書き込むためdotfiles管理外)         |
 
 - Gemini CLIは`~/.zshrc.local`で
   `export GEMINI_CLI_SYSTEM_SETTINGS_PATH="$HOME/.gemini/settings.local.json"`
@@ -174,7 +174,7 @@ apmのMCP対応が成熟し、マシン間で共有したいMCPサーバーが
 - シークレット(APIキー等)は`~/.zshrc.local`に`export`し、
   設定ファイル側は`${VAR}`参照にする
   (Claude Code / Gemini CLIとも起動時に環境変数を解決する)
-- git管理下のファイル(`gemini/settings.json`, `codex/config.toml`等)に
+- git管理下のファイル(`gemini/settings.json`, `claude/settings.json`等)に
   生のシークレット値を書かないこと(コミット禁止ルール)
 
 ### slack-mcpのClaude Code接続について

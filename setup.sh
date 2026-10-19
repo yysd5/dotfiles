@@ -216,7 +216,13 @@ install_codex() {
   log "Setting up Codex CLI config..."
   mkdir -p "$HOME/.codex"
   backup_and_link "$HOME/.codex/AGENT.md" "$DOTFILES_DIR/codex/AGENT.md"
-  backup_and_link "$HOME/.codex/config.toml" "$DOTFILES_DIR/codex/config.toml"
+
+  # config.tomlはアプリが書き込むマシン固有の設定なのでgit管理しない
+  # 旧方式のsymlinkはリンク先が無くなるため解除する
+  if [ -L "$HOME/.codex/config.toml" ]; then
+    log "Removing old symlink $HOME/.codex/config.toml"
+    rm "$HOME/.codex/config.toml"
+  fi
 
   # Skills/Agentsは.apm/配下のソースからapmでデプロイする
   install_apm
