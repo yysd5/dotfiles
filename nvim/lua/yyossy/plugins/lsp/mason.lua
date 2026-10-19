@@ -57,6 +57,7 @@ return {
         "eslint_d", -- js/ts linter
         "markdownlint",
         "prettier", -- prettier formatter
+        "ruff", -- python linter/formatter
         "stylua", -- lua formatter
         "shellcheck", -- shell linter
         "shfmt", -- shell formatter
