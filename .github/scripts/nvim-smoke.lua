@@ -37,6 +37,14 @@ for _, path in ipairs(files) do
   end
 end
 
+-- treesitterのハイライトが有効になるか確認する(事前にパーサーをインストールしておく)
+for _, path in ipairs(files) do
+  local buf = vim.fn.bufnr(path)
+  if buf ~= -1 and not vim.treesitter.highlighter.active[buf] then
+    record("treesitter: highlight is not active for " .. vim.fn.fnamemodify(path, ":t"))
+  end
+end
+
 -- lua_lsがattachするか確認する(事前にmasonでインストールしておく)
 local lua_buf = vim.fn.bufnr(lua_file)
 local attached = vim.wait(60000, function()

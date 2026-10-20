@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - "nvim/**"
-      - ".github/scripts/nvim-smoke.lua"
+      - ".github/scripts/nvim-*.lua"
       - ".github/workflows/nvim.yml"
   push:
     branches: [main]
     paths:
       - "nvim/**"
-      - ".github/scripts/nvim-smoke.lua"
+      - ".github/scripts/nvim-*.lua"
       - ".github/workflows/nvim.yml"
   workflow_dispatch:
 
@@ -31,8 +31,9 @@ jobs:
 
       - name: Install Neovim
         run: |
-          brew install neovim ripgrep
+          brew install neovim ripgrep tree-sitter-cli
           nvim --version
+          tree-sitter --version
 
       - name: Link config
         run: |
@@ -45,6 +46,10 @@ jobs:
       # 未インストールのlinterはファイルを開いたときにエラーになるため先に入れる
       - name: Install mason tools
         run: nvim --headless "+MasonInstall lua-language-server" "+MasonToolsInstallSync" +qa
+
+      # パーサーのビルドにtree-sitter-cliを使う
+      - name: Install treesitter parsers
+        run: nvim --headless -c "luafile .github/scripts/nvim-ts-install.lua"
 
       - name: Smoke test
         run: nvim --headless -c "luafile .github/scripts/nvim-smoke.lua"
