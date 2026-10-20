@@ -60,6 +60,7 @@ return {
       }),
       -- sources for autocompletion
       sources = cmp.config.sources({
+        { name = "lazydev", group_index = 0 }, -- nvim設定のLua用(lazydev.nvim)
         { name = "nvim_lsp" },
         { name = "luasnip" }, -- snippets
         { name = "buffer" }, -- text within current buffer

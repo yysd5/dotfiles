@@ -36,13 +36,19 @@ function M.setup_lsp_keymaps(bufnr)
   vim.keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
 
   opts.desc = "Go to previous diagnostic"
-  vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
+  vim.keymap.set("n", "[d", function()
+    vim.diagnostic.jump({ count = -1, float = true })
+  end, opts)
 
   opts.desc = "Go to next diagnostic"
-  vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+  vim.keymap.set("n", "]d", function()
+    vim.diagnostic.jump({ count = 1, float = true })
+  end, opts)
 
   opts.desc = "Hover documentation"
-  vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+  vim.keymap.set("n", "K", function()
+    vim.lsp.buf.hover({ border = "double" })
+  end, opts)
 
   opts.desc = "Restart LSP"
   vim.keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts)
