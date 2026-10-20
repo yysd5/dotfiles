@@ -1,73 +1,72 @@
--- Treesitter is an awesome Neovim feature that provides better syntax highlighting,
--- indentation, autotagging, incremental selection and many other cool features.
+-- Treesitterのパーサー管理(mainブランチ)
+-- ハイライトとfoldはNeovim標準の機能を使い、FileTypeで有効化する。
+-- パーサーのビルドにはtree-sitter-cli(brew)とCコンパイラが必要
+
+-- https://github.com/nvim-treesitter/nvim-treesitter/blob/main/SUPPORTED_LANGUAGES.md
+local parsers = {
+  "bash",
+  "c",
+  "cpp",
+  "cmake",
+  "css",
+  "dockerfile",
+  "go",
+  "gomod",
+  "groovy",
+  "gitignore",
+  "html",
+  "json",
+  "javascript",
+  "jsdoc",
+  "jinja",
+  "julia",
+  "java",
+  "lua",
+  "make",
+  "markdown",
+  "markdown_inline",
+  "nginx",
+  "python",
+  "query",
+  "rust",
+  "sql",
+  "terraform",
+  "typescript",
+  "tsx",
+  "vim",
+  "vimdoc",
+  "yaml",
+}
 
 return {
   "nvim-treesitter/nvim-treesitter",
-  event = { "BufReadPre", "BufNewFile" },
+  branch = "main",
+  lazy = false, -- mainブランチは遅延読み込みに非対応
   build = ":TSUpdate",
-  dependencies = {
-    "windwp/nvim-ts-autotag",
-  },
-  config = function()
-    -- import nvim-treesitter plugin
-    local treesitter = require("nvim-treesitter.configs")
+  -- ensure_installedはnvim-treesitterの設定ではなく、下のconfigで使う独自キー
+  -- (CIで同期インストールするときにも参照する)
+  opts = { ensure_installed = parsers },
+  config = function(_, opts)
+    -- インストール済みなら何もしない(非同期)
+    require("nvim-treesitter").install(opts.ensure_installed)
 
-    -- configure treesitter
-    treesitter.setup({ -- enable syntax highlighting
-      highlight = {
-        enable = true,
-      },
-      -- enable indentation
-      indent = { enable = true },
-      -- enable autotagging (w/ nvim-ts-autotag plugin)
-      autotag = {
-        enable = true,
-      },
-      -- ensure these language parsers are installed
-      -- https://github.com/nvim-treesitter/nvim-treesitter?tab=readme-ov-file#supported-languages
-      ensure_installed = {
-        "bash",
-        "c",
-        "cpp",
-        "cmake",
-        "css",
-        "dockerfile",
-        "go",
-        "gomod",
-        "groovy",
-        "gitignore",
-        "html",
-        "json",
-        "javascript",
-        "jsdoc",
-        "jinja",
-        "julia",
-        "java",
-        "lua",
-        "make",
-        "markdown",
-        "markdown_inline",
-        "nginx",
-        "python",
-        "query",
-        "rust",
-        "sql",
-        "terraform",
-        "typescript",
-        "tsx",
-        "vim",
-        "vimdoc",
-        "yaml",
-      },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          scope_incremental = false,
-          node_decremental = "<bs>",
-        },
-      },
+    vim.api.nvim_create_autocmd("FileType", {
+      group = vim.api.nvim_create_augroup("UserTreesitter", {}),
+      callback = function(ev)
+        local lang = vim.treesitter.language.get_lang(ev.match)
+        if not lang or not vim.treesitter.language.add(lang) then
+          return
+        end
+        vim.treesitter.start(ev.buf, lang)
+        if vim.treesitter.query.get(lang, "indents") then
+          vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end
+      end,
     })
+
+    -- インクリメンタル選択(Neovim 0.12標準のv_an/v_inに割り当てる)
+    vim.keymap.set("n", "<C-space>", "van", { remap = true, desc = "Start treesitter node selection" })
+    vim.keymap.set("x", "<C-space>", "an", { remap = true, desc = "Expand selection to parent node" })
+    vim.keymap.set("x", "<bs>", "in", { remap = true, desc = "Shrink selection to child node" })
   end,
 }
