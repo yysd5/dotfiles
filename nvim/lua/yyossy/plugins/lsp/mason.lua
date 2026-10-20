@@ -37,7 +37,6 @@ return {
         "gopls",
         -- "groovyls",
         "html",
-        "jdtls", -- java: nvim-jdtlsを使うのでこちらはコメントアウト
         "jsonls",
         "lua_ls",
         -- "ltex", -- reStructuredText

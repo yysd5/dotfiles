@@ -63,13 +63,3 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
   pattern = "*",
   command = "checktime",
 })
-
--- -- Java specific indentation settings
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "java",
---   callback = function()
---     vim.opt_local.tabstop = 4 -- 4 spaces for tabs in Java files
---     vim.opt_local.shiftwidth = 4 -- 4 spaces for indent width in Java files
---     vim.opt_local.expandtab = false -- use actual tabs instead of spaces in Java files
---   end,
--- })

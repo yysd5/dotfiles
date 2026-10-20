@@ -90,9 +90,6 @@ return {
           })
         end,
 
-        -- jdtls is now handled by nvim-jdtls plugin instead of lspconfig
-        -- jdtls = function() ... end,
-
         --[[ Example: customise SQLs
         sqls = function()
           lspconfig.sqls.setup({
