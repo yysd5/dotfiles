@@ -15,7 +15,6 @@ require("lazy").setup({
   { import = "yyossy.plugins" },
   { import = "yyossy.plugins.lsp" },
   { import = "yyossy.plugins.git" },
-  { import = "yyossy.plugins.ai" },
 }, {
   checker = {
     enabled = true,
