@@ -1,49 +1,60 @@
+-- LSPの設定
+-- 各サーバーの既定設定はnvim-lspconfigのlsp/*.luaが提供し、
+-- ここではvim.lsp.config()で上書きだけを行う。
+-- masonでインストール済みのサーバーはmason-lspconfigがvim.lsp.enable()する
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
 
-  -- Explicit dependencies (lazy.nvim will install & load these first)
   dependencies = {
     "williamboman/mason.nvim", -- LSP/DAP/Linter installer UI
-    "williamboman/mason-lspconfig.nvim", -- mason ↔ nvim-lspconfig bridge (v2.x)
+    "williamboman/mason-lspconfig.nvim", -- mason ↔ vim.lsp.enable bridge (v2.x)
     "hrsh7th/cmp-nvim-lsp", -- LSP completion capabilities
     { "antosha417/nvim-lsp-file-operations", config = true }, -- auto-refresh on rename/move
-    { "folke/neodev.nvim", opts = {} }, -- better Lua LS for Neovim configs
   },
 
   config = function()
     ---------------------------------------------------------------------------
-    -- Imports
+    -- Diagnostics
     ---------------------------------------------------------------------------
-    local lspconfig = require("lspconfig")
-    local mason_lspconfig = require("mason-lspconfig")
-    local cmp_nvim_lsp = require("cmp_nvim_lsp")
-    local keymap = vim.keymap
+    local severity = vim.diagnostic.severity
+    vim.diagnostic.config({
+      signs = {
+        text = {
+          [severity.ERROR] = "✖ ",
+          [severity.WARN] = "⚠ ",
+          [severity.HINT] = "⚑ ",
+          [severity.INFO] = "ℹ ",
+        },
+      },
+      float = { border = "double" },
+    })
 
     ---------------------------------------------------------------------------
-    -- Global LSP capabilities (used for every server)
+    -- Common settings for every server
     ---------------------------------------------------------------------------
-    local capabilities = cmp_nvim_lsp.default_capabilities()
+    vim.lsp.config("*", {
+      capabilities = require("cmp_nvim_lsp").default_capabilities(),
+    })
 
     ---------------------------------------------------------------------------
-    -- Diagnostic signs in the gutter
+    -- Per-server customisations
     ---------------------------------------------------------------------------
-    local signs = { Error = "✖ ", Warn = "⚠ ", Hint = "⚑ ", Info = "ℹ " }
-    for type, icon in pairs(signs) do
-      local hl = "DiagnosticSign" .. type
-      vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
-    end
+    vim.lsp.config("lua_ls", {
+      settings = {
+        Lua = {
+          completion = { callSnippet = "Replace" },
+        },
+      },
+    })
 
-    ---------------------------------------------------------------------------
-    -- Floating-window borders
-    ---------------------------------------------------------------------------
-    local original_open_floating_preview = vim.lsp.util.open_floating_preview
-    ---@diagnostic disable-next-line: duplicate-set-field
-    vim.lsp.util.open_floating_preview = function(contents, syntax, opts, ...)
-      opts = opts or {}
-      opts.border = opts.border or "double"
-      return original_open_floating_preview(contents, syntax, opts, ...)
-    end
+    vim.lsp.config("pyright", {
+      -- 絶対importを解決するため、最寄りの.gitをrootにする
+      -- (root_markersはリストが要素ごとにマージされるのでroot_dirで指定する)
+      root_dir = function(bufnr, on_dir)
+        on_dir(vim.fs.root(bufnr, ".git") or vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr)))
+      end,
+    })
 
     ---------------------------------------------------------------------------
     -- Buffer-local keymaps when the LSP attaches
@@ -51,66 +62,41 @@ return {
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
       callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        -- Pythonのhoverはpyrightに任せる(ruffとの重複表示を避ける)
+        if client and client.name == "ruff" then
+          client.server_capabilities.hoverProvider = false
+        end
         require("yyossy.lsp_keymaps").setup_lsp_keymaps(ev.buf)
       end,
     })
 
     ---------------------------------------------------------------------------
-    -- mason-lspconfig v2.x setup
+    -- Install servers and enable installed ones
     ---------------------------------------------------------------------------
-    mason_lspconfig.setup({
-      -- If you want automatic installation, uncomment ↓
-      -- ensure_installed = { "lua_ls", "pyright", "gopls", "rust_analyzer", ... },
-      handlers = {
-        -- Default handler (executes for *every* installed server)
-        function(server_name)
-          lspconfig[server_name].setup({
-            capabilities = capabilities,
-          })
-        end,
-
-        -- ---★ Per-server customisations ---------------------------------------------------
-        lua_ls = function()
-          lspconfig.lua_ls.setup({
-            capabilities = capabilities,
-            settings = {
-              Lua = {
-                diagnostics = { globals = { "vim" } },
-                completion = { callSnippet = "Replace" },
-              },
-            },
-          })
-        end,
-
-        pyright = function()
-          lspconfig.pyright.setup({
-            capabilities = capabilities,
-            -- Use the nearest .git directory as root to resolve absolute imports
-            root_dir = lspconfig.util.root_pattern(".git"),
-          })
-        end,
-
-        --[[ Example: customise SQLs
-        sqls = function()
-          lspconfig.sqls.setup({
-            on_attach = function(client, bufnr)
-              require("sqls").on_attach(client, bufnr)
-            end,
-            capabilities = capabilities,
-            settings = {
-              sqls = {
-                connections = {
-                  {
-                    driver = "mysql",
-                    dataSourceName = "root:root@tcp(127.0.0.1:13306)/world",
-                  },
-                },
-              },
-            },
-          })
-        end,
-        ]]
+    require("mason-lspconfig").setup({
+      -- https://github.com/mason-org/mason-lspconfig.nvim#available-lsp-servers
+      ensure_installed = {
+        "ansiblels",
+        "bashls",
+        "clangd",
+        "cmake",
+        "docker_compose_language_service",
+        "dockerls",
+        "gopls",
+        "html",
+        "jsonls",
+        "lua_ls",
+        "nginx_language_server",
+        "pyright", -- python (型チェック)
+        "ruff", -- python (lint/コードアクション)
+        "rust_analyzer",
+        "sqls",
+        "terraformls", -- terraform lsp
+        "tflint", -- terraform linter
+        "ts_ls", -- javascript/typescript
       },
+      automatic_enable = true,
     })
   end,
 }
