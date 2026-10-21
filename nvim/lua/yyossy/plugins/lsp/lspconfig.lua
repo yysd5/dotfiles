@@ -9,7 +9,7 @@ return {
   dependencies = {
     "williamboman/mason.nvim", -- LSP/DAP/Linter installer UI
     "williamboman/mason-lspconfig.nvim", -- mason ↔ vim.lsp.enable bridge (v2.x)
-    "hrsh7th/cmp-nvim-lsp", -- LSP completion capabilities
+    "saghen/blink.cmp", -- LSP completion capabilities
     { "antosha417/nvim-lsp-file-operations", config = true }, -- auto-refresh on rename/move
   },
 
@@ -34,7 +34,7 @@ return {
     -- Common settings for every server
     ---------------------------------------------------------------------------
     vim.lsp.config("*", {
-      capabilities = require("cmp_nvim_lsp").default_capabilities(),
+      capabilities = require("blink.cmp").get_lsp_capabilities(),
     })
 
     ---------------------------------------------------------------------------
