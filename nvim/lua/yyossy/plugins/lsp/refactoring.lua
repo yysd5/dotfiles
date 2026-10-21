@@ -1,42 +1,38 @@
 -- https://github.com/ThePrimeagen/refactoring.nvim
+-- 操作はoperator(g@)として提供されるので、expr mapでモーションを続ける
 return {
   "ThePrimeagen/refactoring.nvim",
   dependencies = {
-    "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
+    "lewis6991/async.nvim", -- Neovim 0.12では必要(0.13以降は不要)
   },
   lazy = false,
   config = function()
-    require("refactoring").setup({
-      -- load refactoring Telescope extension
-      require("telescope").load_extension("refactoring"),
-      vim.keymap.set({ "n", "x" }, "<leader>rr", function()
-        require("telescope").extensions.refactoring.refactors()
-      end, { desc = "Refactor: Open Telescope Refactors" }),
+    local keymap = vim.keymap
+    local debug = function()
+      return require("refactoring.debug")
+    end
 
-      -- You can also use below = true here to to change the position of the printf
-      -- statement (or set two remaps for either one). This remap must be made in normal mode.
-      vim.keymap.set("n", "<leader>rp", function()
-        require("refactoring").debug.printf({ below = true })
-      end, { desc = "Refactor: Insert debug printf (below)" }),
+    keymap.set({ "n", "x" }, "<leader>rr", function()
+      require("refactoring").select_refactor()
+    end, { desc = "Refactor: Select refactor" })
 
-      -- Supports both visual and normal mode
-      vim.keymap.set({ "x", "n" }, "<leader>rv", function()
-        require("refactoring").debug.print_var()
-      end, { desc = "Refactor: Print variable" }),
+    keymap.set("n", "<leader>rp", function()
+      return debug().print_loc({ output_location = "below" })
+    end, { expr = true, desc = "Refactor: Insert debug print (below)" })
 
-      -- Supports only normal mode
-      vim.keymap.set("n", "<leader>rc", function()
-        require("refactoring").debug.cleanup({})
-      end, { desc = "Refactor: Cleanup debug statements" }),
+    keymap.set("n", "<leader>rv", function()
+      return debug().print_var({ output_location = "below" }) .. "iw"
+    end, { expr = true, desc = "Refactor: Print variable" })
+    keymap.set("x", "<leader>rv", function()
+      return debug().print_var({ output_location = "below" })
+    end, { expr = true, desc = "Refactor: Print variable" })
 
-      -- overriding printf statement for cpp
-      printf_statements = {
-        -- add a custom printf statement for cpp
-        cpp = {
-          'std::cout << "%s" << std::endl;',
-        },
-      },
-    })
+    -- ノーマルモードではバッファ全体を対象にする
+    keymap.set("n", "<leader>rc", function()
+      vim.cmd.normal({ "gg" .. debug().cleanup({ restore_view = true }) .. "G", bang = true })
+    end, { desc = "Refactor: Cleanup debug statements" })
+    keymap.set("x", "<leader>rc", function()
+      return debug().cleanup({ restore_view = true })
+    end, { expr = true, desc = "Refactor: Cleanup debug statements" })
   end,
 }

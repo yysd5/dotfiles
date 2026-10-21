@@ -114,6 +114,7 @@ sshs
 terminal-notifier
 tmux
 tree
+tree-sitter-cli
 EOF
 }
 

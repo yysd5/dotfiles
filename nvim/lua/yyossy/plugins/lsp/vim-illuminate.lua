@@ -3,7 +3,8 @@ return {
   event = { "BufReadPost", "BufNewFile" },
   config = function()
     require("illuminate").configure({
-      providers = { "treesitter" },
+      -- nvim-treesitter(main)にはlocalsが無いのでtreesitterは使わない
+      providers = { "lsp", "regex" },
       delay = 200,
       filetypes_denylist = { "NvimTree", "TelescopePrompt" },
       under_cursor = true,
