@@ -142,7 +142,10 @@ return {
 
     -- Search and command history
     keymap.set("n", "<leader>fh", "<cmd>Telescope search_history<cr>", { desc = "Search history" })
-    keymap.set("n", "<leader>ch", "<cmd>Telescope command_history<cr>", { desc = "Command history" })
+    keymap.set("n", "<leader>f:", "<cmd>Telescope command_history<cr>", { desc = "Command history" })
+
+    -- キーマップ検索
+    keymap.set("n", "<leader>?", "<cmd>Telescope keymaps<cr>", { desc = "Search keymaps" })
 
     -- Git integration
     keymap.set("n", "<leader>gs", "<cmd>Telescope git_status<cr>", { desc = "Telescope: Git status" })
