@@ -1,9 +1,9 @@
 return {
   "nvim-telescope/telescope.nvim",
-  branch = "0.1.x",
   dependencies = {
     "nvim-lua/plenary.nvim",
     { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+    "nvim-telescope/telescope-ui-select.nvim", -- vim.ui.selectをTelescopeで表示する
     "nvim-tree/nvim-web-devicons",
     "folke/todo-comments.nvim",
   },
@@ -81,9 +81,15 @@ return {
           end,
         },
       },
+      extensions = {
+        ["ui-select"] = {
+          require("telescope.themes").get_dropdown(),
+        },
+      },
     })
 
     telescope.load_extension("fzf")
+    telescope.load_extension("ui-select")
 
     -- Define last search term storage
     local last_search_term = ""
