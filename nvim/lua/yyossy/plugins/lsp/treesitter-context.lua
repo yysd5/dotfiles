@@ -12,5 +12,6 @@ return {
       mode = "topline", -- Show context for current cursor position
       separator = "_",
     })
+    vim.keymap.set("n", "<leader>tc", "<cmd>TSContext toggle<CR>", { desc = "Toggle treesitter context" })
   end,
 }

@@ -47,14 +47,14 @@ return {
     end, { desc = "Format file or range (in visual mode)" })
 
     -- Toggle autoformat on save globally
-    vim.keymap.set("n", "<leader>tf", function()
+    vim.keymap.set("n", "<leader>tA", function()
       vim.g.autoformat = not vim.g.autoformat
       local status = vim.g.autoformat and "enabled" or "disabled"
       vim.notify("Autoformat on save " .. status, vim.log.levels.INFO)
     end, { desc = "Toggle autoformat on save globally" })
 
     -- Toggle autoformat on save for current buffer
-    vim.keymap.set("n", "<leader>tF", function()
+    vim.keymap.set("n", "<leader>ta", function()
       local current = vim.b.autoformat
       if current == nil then
         current = vim.g.autoformat
