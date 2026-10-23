@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>yyossy Neovim マニュアル</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!--
+  nvim設定のマニュアル。nvimでは<leader>H か :NvimManual でブラウザに開く。
+  設定(キーマップ・プラグイン)を変えたら、このファイルとClaude Artifactを一緒に更新する。
+  Artifact: https://claude.ai/artifact/PnHDKnAKCa9HUsZ7882tjb
+  Artifactへ公開するときは <!doctype> / html / head / body の行を除いて公開する
+  (Artifact側で同じ骨組みが付くため)。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* レイアウト: 左に固定の目次、右にやりたいこと別のキー表。狭い画面では目次を上に畳む */
+:root {
+  /* 配色はnvimで使っているカラースキーム(nightfox / dayfox)に合わせる */
+  --bg: #f6f2ee;
+  --surface: #ebe5df;
+  --line: #d3c7bb;
+  --fg: #3d2b5a;
+  --muted: #6e6283;
+  --accent: #2848a9;
+  --leader: #a5222f;
+  --ok: #396847;
+  --font-body: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #192330;
+    --surface: #212e3f;
+    --line: #39506d;
+    --fg: #cdcecf;
+    --muted: #8e98a8;
+    --accent: #719cd6;
+    --leader: #f4a261;
+    --ok: #81b29a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #192330;
+  --surface: #212e3f;
+  --line: #39506d;
+  --fg: #cdcecf;
+  --muted: #8e98a8;
+  --accent: #719cd6;
+  --leader: #f4a261;
+  --ok: #81b29a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.page {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 40px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (max-width: 860px) {
+  .page { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+
+/* 目次 */
+nav.toc {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 24px);
+  align-self: start;
+  font-size: 13px;
+}
+nav.toc h2 {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav.toc a {
+  display: block;
+  padding: 3px 8px;
+  border-left: 2px solid transparent;
+  color: var(--fg);
+  text-decoration: none;
+}
+nav.toc a:hover, nav.toc a:focus-visible { border-left-color: var(--accent); color: var(--accent); outline: none; }
+@media (max-width: 860px) {
+  nav.toc { position: static; }
+  nav.toc ol { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+main { min-width: 0; }
+header.top { display: grid; gap: 12px; margin-bottom: 32px; }
+header.top .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+h1 {
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.25;
+  margin: 0;
+  text-wrap: balance;
+  font-weight: 700;
+}
+.lead { margin: 0; max-width: 65ch; color: var(--muted); }
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  max-width: 520px;
+}
+.search label { font-family: var(--font-mono); color: var(--leader); font-weight: 600; }
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  outline: none;
+}
+.search:focus-within { border-color: var(--accent); }
+.search .count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+section { margin-top: 48px; scroll-margin-top: 16px; }
+h2 {
+  font-size: 21px;
+  margin: 0 0 6px;
+  text-wrap: balance;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+h2 .prefix { font-family: var(--font-mono); font-size: 14px; color: var(--leader); font-weight: 600; }
+h3 { font-size: 15px; margin: 24px 0 8px; color: var(--accent); }
+section > p, .note { max-width: 70ch; margin: 0 0 12px; }
+.note { font-size: 13px; color: var(--muted); }
+
+/* キー表 */
+.table-wrap { overflow-x: auto; margin: 8px 0 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--line); }
+th {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+td.keys { white-space: nowrap; width: 1%; padding-right: 20px; }
+td.mode { white-space: nowrap; width: 1%; color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+tr[hidden] { display: none; }
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  white-space: nowrap;
+}
+kbd .ld { color: var(--leader); font-weight: 600; }
+code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: var(--radius);
+}
+
+/* プレフィックス早見表 */
+.prefix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.prefix-grid a {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--fg);
+}
+.prefix-grid a:hover, .prefix-grid a:focus-visible { border-color: var(--accent); outline: none; }
+.prefix-grid b { font-family: var(--font-mono); color: var(--leader); font-size: 16px; }
+.prefix-grid span { font-size: 13px; }
+
+/* 設定ファイル構成 */
+pre.tree {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+pre.tree .c { color: var(--muted); }
+
+dl.plugins { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 6px 20px; margin: 8px 0; font-size: 14px; }
+dl.plugins dt { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+dl.plugins dd { margin: 0; }
+@media (max-width: 560px) {
+  dl.plugins { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  dl.plugins dd { margin-bottom: 8px; }
+}
+
+.empty { display: none; margin-top: 32px; color: var(--muted); }
+.searching .empty.show { display: block; }
+
+footer { margin-top: 64px; font-size: 12px; color: var(--muted); }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="toc" aria-label="目次">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#start">はじめに</a></li>
+      <li><a href="#basic">基本操作</a></li>
+      <li><a href="#files">ファイルを開く</a></li>
+      <li><a href="#search">検索・置換</a></li>
+      <li><a href="#code">コード・LSP</a></li>
+      <li><a href="#completion">補完</a></li>
+      <li><a href="#edit">編集</a></li>
+      <li><a href="#refactor">リファクタ</a></li>
+      <li><a href="#git">Git</a></li>
+      <li><a href="#window">ウィンドウ・タブ</a></li>
+      <li><a href="#lists">一覧・診断</a></li>
+      <li><a href="#toggle">切り替え・表示</a></li>
+      <li><a href="#bookmark">ブックマーク</a></li>
+      <li><a href="#panels">画面ごとのキー</a></li>
+      <li><a href="#plugins">プラグイン</a></li>
+      <li><a href="#tools">言語ツール</a></li>
+      <li><a href="#files-layout">設定ファイル構成</a></li>
+      <li><a href="#maintenance">メンテナンス</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+    <header class="top" id="start">
+      <div class="eyebrow">~/dotfiles/nvim · Neovim 0.12 · lazy.nvim</div>
+      <h1>yyossy Neovim マニュアル</h1>
+      <p class="lead">
+        自分のNeovim設定でできることと、そのキー操作のまとめ。
+        <kbd><span class="ld">Space</span></kbd> がleaderキー。
+        nvimからは <kbd><span class="ld">Space</span> H</kbd> か <code>:NvimManual</code> でこのページを開ける。
+      </p>
+      <div class="search">
+        <label for="q">/</label>
+        <input id="q" type="search" placeholder="キーやできることで絞り込む(例: rename, Git, 分割)" autocomplete="off">
+        <span class="count" id="count"></span>
+      </div>
+    </header>
+
+    <section id="prefixes" data-static>
+      <h2>leaderキーの使い分け</h2>
+      <p>
+        <kbd><span class="ld">Space</span></kbd> を押して待つと、which-keyが下の分類で候補を出す。
+        キーマップを名前で探すなら <kbd><span class="ld">Space</span> ?</kbd>(Telescopeのキーマップ検索)。
+      </p>
+      <div class="prefix-grid">
+        <a href="#search"><b>f</b><span>Find(検索)</span></a>
+        <a href="#code"><b>c</b><span>Code(LSP・整形)</span></a>
+        <a href="#git"><b>g</b><span>Git</span></a>
+        <a href="#git"><b>gd</b><span>Diffview</span></a>
+        <a href="#git"><b>h</b><span>Git hunk</span></a>
+        <a href="#refactor"><b>r</b><span>Refactor</span></a>
+        <a href="#window"><b>w</b><span>Window / Session</span></a>
+        <a href="#window"><b>Tab</b><span>タブ</span></a>
+        <a href="#toggle"><b>t</b><span>Toggle(切り替え)</span></a>
+        <a href="#lists"><b>q</b><span>Quickfix</span></a>
+        <a href="#lists"><b>x</b><span>Trouble</span></a>
+        <a href="#bookmark"><b>m</b><span>Bookmark</span></a>
+        <a href="#files"><b>e</b><span>Explorer</span></a>
+      </div>
+    </section>
+
+    <section id="basic">
+      <h2>基本操作</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>jk</kbd></td><td class="mode">i</td><td>インサートモードを抜ける</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-s</kbd></td><td class="mode">n i</td><td>保存</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> nh</kbd></td><td class="mode">n</td><td>検索のハイライトを消す</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> u</kbd></td><td class="mode">n</td><td>コマンド履歴ウィンドウ(<code>q:</code>)を開く/閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ?</kbd></td><td class="mode">n</td><td>キーマップを検索(Telescope)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> H</kbd></td><td class="mode">n</td><td>このマニュアルをブラウザで開く(<code>:NvimManual</code>)</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-u</kbd> <kbd>Ctrl-d</kbd></td><td class="mode">n v</td><td>半画面スクロール(なめらか)</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-b</kbd> <kbd>Ctrl-f</kbd></td><td class="mode">n v</td><td>1画面スクロール(なめらか)</td></tr>
+          <tr><td class="keys"><kbd>Esc</kbd> / <kbd>jk</kbd></td><td class="mode">t</td><td>ターミナルのジョブモードからノーマルモードへ</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">クリップボードはシステムと共有(<code>unnamedplus</code>)。外部で変更されたファイルは、nvimに戻ったときやバッファに入ったときに読み直す。</p>
+    </section>
+
+    <section id="files">
+      <h2>ファイルを開く <span class="prefix">f · e</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ff</kbd></td><td class="mode">n</td><td>ファイル名で探して開く(隠しファイルも対象)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fr</kbd></td><td class="mode">n</td><td>最近開いたファイル</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fR</kbd></td><td class="mode">n</td><td>直前のTelescope検索を再開</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> d</kbd></td><td class="mode">n</td><td>開いているバッファの一覧(buffer_manager)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ee</kbd></td><td class="mode">n</td><td>ファイルツリー(nvim-tree)を開く/閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ef</kbd></td><td class="mode">n</td><td>今のファイルをツリー上で表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ec</kbd></td><td class="mode">n</td><td>ツリーを全部畳む</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> er</kbd></td><td class="mode">n</td><td>ツリーを再読み込み</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">起動時のダッシュボードでは <kbd>e</kbd> 新規ファイル、<kbd>q</kbd> 終了。セッションはディレクトリごとに自動で保存・復元される(<a href="#window">ウィンドウ・タブ</a>)。</p>
+    </section>
+
+    <section id="search">
+      <h2>検索・置換 <span class="prefix">f</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fs</kbd></td><td class="mode">n</td><td>プロジェクト内を文字列検索(live grep)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fS</kbd></td><td class="mode">n</td><td>文字列を入力してからあいまい検索</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fc</kbd></td><td class="mode">n</td><td>カーソル下の単語でプロジェクト内を検索</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fC</kbd></td><td class="mode">n</td><td>カーソル下の単語であいまい検索</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> /</kbd></td><td class="mode">n</td><td>今のバッファ内を検索</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ft</kbd></td><td class="mode">n</td><td>TODO/FIXMEなどのコメントを一覧</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> fh</kbd></td><td class="mode">n</td><td>検索履歴</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> f:</kbd></td><td class="mode">n</td><td>コマンド履歴</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> S</kbd></td><td class="mode">n</td><td>プロジェクト全体の検索・置換(grug-far)</td></tr>
+          <tr><td class="keys"><kbd>n</kbd> <kbd>N</kbd> <kbd>*</kbd> <kbd>#</kbd></td><td class="mode">n</td><td>次/前の一致へ。何件中何件目かを行末に表示(hlslens)</td></tr>
+          <tr><td class="keys"><kbd>]t</kbd> <kbd>[t</kbd></td><td class="mode">n</td><td>次/前のTODOコメントへ</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">Telescopeの中のキーは<a href="#panels">画面ごとのキー</a>を参照。</p>
+    </section>
+
+    <section id="code">
+      <h2>コード・LSP <span class="prefix">c · g</span></h2>
+      <p>LSPのキーはLSPが動いているバッファでだけ有効。<code>g</code>系の移動はTelescopeで候補を出す。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>gd</kbd></td><td class="mode">n</td><td>定義へ移動</td></tr>
+          <tr><td class="keys"><kbd>gD</kbd></td><td class="mode">n</td><td>宣言へ移動</td></tr>
+          <tr><td class="keys"><kbd>gR</kbd></td><td class="mode">n</td><td>参照の一覧</td></tr>
+          <tr><td class="keys"><kbd>gi</kbd></td><td class="mode">n</td><td>実装の一覧</td></tr>
+          <tr><td class="keys"><kbd>gt</kbd></td><td class="mode">n</td><td>型定義へ移動</td></tr>
+          <tr><td class="keys"><kbd>K</kbd></td><td class="mode">n</td><td>ドキュメントをホバー表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ca</kbd></td><td class="mode">n v</td><td>コードアクション(修正候補を選ぶ)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cr</kbd></td><td class="mode">n</td><td>シンボルをリネーム(rename)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cf</kbd></td><td class="mode">n v</td><td>整形(ビジュアルなら選択範囲だけ)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cl</kbd></td><td class="mode">n</td><td>lintを今すぐ実行</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cd</kbd></td><td class="mode">n</td><td>カーソル行の診断をポップアップ表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cD</kbd></td><td class="mode">n</td><td>バッファの診断を一覧(Telescope)</td></tr>
+          <tr><td class="keys"><kbd>]d</kbd> <kbd>[d</kbd></td><td class="mode">n</td><td>次/前の診断へ移動してポップアップ表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> co</kbd></td><td class="mode">n</td><td>アウトライン(関数・クラスの一覧)を開く/閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ;</kbd></td><td class="mode">n</td><td>上部のパンくず(dropbar)からシンボルを選んで移動</td></tr>
+          <tr><td class="keys"><kbd>[;</kbd> <kbd>];</kbd></td><td class="mode">n</td><td>今のブロックの先頭へ / 次のブロックを選ぶ</td></tr>
+          <tr><td class="keys"><kbd>Alt-n</kbd> <kbd>Alt-p</kbd></td><td class="mode">n</td><td>カーソル下の単語の次/前の出現箇所へ(illuminate)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cR</kbd></td><td class="mode">n</td><td>LSPを再起動</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> cp</kbd></td><td class="mode">n</td><td>Markdownをブラウザでプレビュー(markdownのみ)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">保存時の自動整形は既定でオフ。必要なら <kbd><span class="ld">Space</span> ta</kbd> / <kbd><span class="ld">Space</span> tA</kbd> で有効にする(<a href="#toggle">切り替え</a>)。</p>
+    </section>
+
+    <section id="completion">
+      <h2>補完</h2>
+      <p>入力すると候補が出る(blink.cmp)。最初は何も選ばれておらず、選んだ候補はその場で挿入される。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>Ctrl-j</kbd> <kbd>Ctrl-k</kbd></td><td class="mode">i</td><td>次/前の候補(<kbd>Ctrl-n</kbd> <kbd>Ctrl-p</kbd> <kbd>↓</kbd> <kbd>↑</kbd> も同じ)</td></tr>
+          <tr><td class="keys"><kbd>Enter</kbd></td><td class="mode">i</td><td>選んでいる候補を確定。未選択ならふつうの改行</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-Space</kbd></td><td class="mode">i</td><td>候補を表示(表示中はドキュメントの表示切替)</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-e</kbd></td><td class="mode">i</td><td>補完を取り消して閉じる</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-f</kbd> <kbd>Ctrl-b</kbd></td><td class="mode">i</td><td>ドキュメントをスクロール</td></tr>
+          <tr><td class="keys"><kbd>Tab</kbd> <kbd>Shift-Tab</kbd></td><td class="mode">i</td><td>スニペットの次/前の入力欄へ</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">候補の出どころ: LSP、スニペット(LuaSnip + friendly-snippets)、バッファ内の単語、ファイルパス。nvim設定のLuaではNeovimのAPIも補完される(lazydev)。関数を確定すると括弧も付く。</p>
+    </section>
+
+    <section id="edit">
+      <h2>編集</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>gcc</kbd></td><td class="mode">n</td><td>行をコメントアウト/解除(tsxなどは位置に応じた書式)</td></tr>
+          <tr><td class="keys"><kbd>gc</kbd>+移動</td><td class="mode">n v</td><td>範囲をコメントアウト/解除(例: <kbd>gcip</kbd>)</td></tr>
+          <tr><td class="keys"><kbd>ys</kbd>+移動+文字</td><td class="mode">n</td><td>囲む(例: <kbd>ysiw"</kbd> で単語を<code>"</code>で囲む)</td></tr>
+          <tr><td class="keys"><kbd>ds</kbd>+文字</td><td class="mode">n</td><td>囲みを外す(例: <kbd>ds(</kbd>)</td></tr>
+          <tr><td class="keys"><kbd>cs</kbd>+旧+新</td><td class="mode">n</td><td>囲みを変える(例: <kbd>cs"'</kbd>)</td></tr>
+          <tr><td class="keys"><kbd>S</kbd>+文字</td><td class="mode">v</td><td>選択範囲を囲む</td></tr>
+          <tr><td class="keys"><kbd>s</kbd>+移動</td><td class="mode">n</td><td>範囲をレジスタの内容で置き換える(例: <kbd>siw</kbd>)</td></tr>
+          <tr><td class="keys"><kbd>ss</kbd></td><td class="mode">n</td><td>行をレジスタの内容で置き換える</td></tr>
+          <tr><td class="keys"><kbd>S</kbd></td><td class="mode">n</td><td>行末までをレジスタの内容で置き換える</td></tr>
+          <tr><td class="keys"><kbd>s</kbd></td><td class="mode">v</td><td>選択範囲をレジスタの内容で置き換える</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-Space</kbd></td><td class="mode">n v</td><td>構文の単位で選択を広げる(treesitter)</td></tr>
+          <tr><td class="keys"><kbd>Backspace</kbd></td><td class="mode">v</td><td>選択を1段狭める</td></tr>
+          <tr><td class="keys"><kbd>ih</kbd></td><td class="mode">o v</td><td>Gitの変更箇所(hunk)を選ぶテキストオブジェクト</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">括弧・引用符・タグは自動で閉じる(nvim-autopairs、nvim-ts-autotag)。インデントは2スペース。</p>
+    </section>
+
+    <section id="refactor">
+      <h2>リファクタ <span class="prefix">r</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> rr</kbd></td><td class="mode">n v</td><td>リファクタを選ぶ(変数・関数の抽出、インライン化)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> rp</kbd></td><td class="mode">n</td><td>現在位置を出力するデバッグprintを下に挿入</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> rv</kbd></td><td class="mode">n v</td><td>カーソル下の変数(ビジュアルは選択範囲)をprintする行を挿入</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> rc</kbd></td><td class="mode">n v</td><td>挿入したデバッグprintを削除(ノーマルはバッファ全体)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="git">
+      <h2>Git <span class="prefix">g · gd · h</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gs</kbd></td><td class="mode">n</td><td>変更ファイルの一覧(git status)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gb</kbd></td><td class="mode">n</td><td>今のファイルのコミット履歴</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gl</kbd></td><td class="mode">n</td><td>コミットグラフを表示。Enterでそのコミットの差分を開く</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gy</kbd></td><td class="mode">n v</td><td>今の行(選択範囲)のGitHubリンクをコピー</td></tr>
+          <tr><td class="keys"><kbd>]h</kbd> <kbd>[h</kbd></td><td class="mode">n</td><td>次/前の変更箇所(hunk)へ</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hs</kbd></td><td class="mode">n v</td><td>hunkをステージ(ステージ済みなら取り消し)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hr</kbd></td><td class="mode">n v</td><td>hunkの変更を元に戻す</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hS</kbd></td><td class="mode">n</td><td>ファイル全体をステージ</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hR</kbd></td><td class="mode">n</td><td>ファイル全体の変更を元に戻す</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hp</kbd></td><td class="mode">n</td><td>hunkの差分をプレビュー</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hb</kbd></td><td class="mode">n</td><td>その行のblame(コミット全文)を表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hd</kbd></td><td class="mode">n</td><td>今のファイルの差分を左右に表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hq</kbd></td><td class="mode">n</td><td>このファイルのhunkをquickfixへ</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> hQ</kbd></td><td class="mode">n</td><td>全ファイルのhunkをquickfixへ</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Diffview <span class="prefix">gd</span></h3>
+      <p class="note">比較先は、小文字がHEAD(コミット済みの差分)、大文字が作業ツリー(未コミットも含む差分)。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gdo</kbd></td><td class="mode">n</td><td>未コミットの変更をDiffviewで開く</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gdc</kbd></td><td class="mode">n</td><td>Diffviewを閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gdh</kbd></td><td class="mode">n</td><td>リポジトリのコミット履歴</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gdm</kbd> / <kbd>gdM</kbd></td><td class="mode">n</td><td>origin/main と比較(HEAD / 作業ツリー)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gdd</kbd> / <kbd>gdD</kbd></td><td class="mode">n</td><td>origin/develop と比較(HEAD / 作業ツリー)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> gdn</kbd> / <kbd>gdN</kbd></td><td class="mode">n</td><td>origin/master と比較(HEAD / 作業ツリー)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">行末に今の行のblameが常に出る。</p>
+    </section>
+
+    <section id="window">
+      <h2>ウィンドウ・タブ・セッション <span class="prefix">w · Tab</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> wv</kbd></td><td class="mode">n</td><td>縦に分割(右に開く)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> wh</kbd></td><td class="mode">n</td><td>横に分割(下に開く)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> we</kbd></td><td class="mode">n</td><td>分割の大きさをそろえる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> wx</kbd></td><td class="mode">n</td><td>今の分割を閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> wm</kbd> / <kbd>F3</kbd></td><td class="mode">n</td><td>今の分割を最大化/元に戻す</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-h</kbd> <kbd>Ctrl-j</kbd> <kbd>Ctrl-k</kbd> <kbd>Ctrl-l</kbd></td><td class="mode">n</td><td>左/下/上/右の分割へ移動(tmuxのペインもまたぐ)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> Tab o</kbd></td><td class="mode">n</td><td>新しいタブ</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> Tab f</kbd></td><td class="mode">n</td><td>今のファイルを新しいタブで開く</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> Tab n</kbd> / <kbd>Tab p</kbd></td><td class="mode">n</td><td>次/前のタブ</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> Tab x</kbd></td><td class="mode">n</td><td>今のタブを閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> wr</kbd></td><td class="mode">n</td><td>このディレクトリのセッションを復元</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ws</kbd></td><td class="mode">n</td><td>セッションを保存</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">セッションは終了時に自動保存され、同じディレクトリで起動すると自動で復元される(auto-session)。</p>
+    </section>
+
+    <section id="lists">
+      <h2>一覧・診断 <span class="prefix">q · x</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> qq</kbd></td><td class="mode">n</td><td>quickfixを開く/閉じる</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ql</kbd></td><td class="mode">n</td><td>ロケーションリストを開く/閉じる</td></tr>
+          <tr><td class="keys"><kbd>&gt;</kbd> <kbd>&lt;</kbd></td><td class="mode">n</td><td>quickfixの各行の前後のコードを表示/畳む(quicker)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> xx</kbd> / <kbd>xw</kbd></td><td class="mode">n</td><td>全体の診断一覧(Trouble)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> xd</kbd></td><td class="mode">n</td><td>今のファイルの診断一覧(Trouble)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> xq</kbd></td><td class="mode">n</td><td>quickfixをTroubleで表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> xl</kbd></td><td class="mode">n</td><td>ロケーションリストをTroubleで表示</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> xt</kbd></td><td class="mode">n</td><td>TODOコメントをTroubleで表示</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">quickfixの中はふつうのバッファとして編集でき、保存すると元のファイルに反映される(quicker)。</p>
+    </section>
+
+    <section id="toggle">
+      <h2>切り替え・表示 <span class="prefix">t</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ta</kbd></td><td class="mode">n</td><td>保存時の自動整形を切り替え(今のバッファだけ)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> tA</kbd></td><td class="mode">n</td><td>保存時の自動整形を切り替え(全体)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> tc</kbd></td><td class="mode">n</td><td>画面上部に今の関数名などを固定表示(treesitter-context。既定はオフ)</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> z</kbd></td><td class="mode">n</td><td>Zenモード(今のバッファだけを中央に表示)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note"><code>:Twilight</code> で今のブロック以外を暗くできる。</p>
+    </section>
+
+    <section id="bookmark">
+      <h2>ブックマーク <span class="prefix">m</span></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>mm</kbd> / <kbd><span class="ld">Space</span> mm</kbd></td><td class="mode">n</td><td>この行のブックマークを付ける/外す</td></tr>
+          <tr><td class="keys"><kbd>mi</kbd> / <kbd><span class="ld">Space</span> ma</kbd></td><td class="mode">n</td><td>ブックマークにメモを付ける</td></tr>
+          <tr><td class="keys"><kbd>mn</kbd> <kbd>mp</kbd></td><td class="mode">n</td><td>次/前のブックマークへ</td></tr>
+          <tr><td class="keys"><kbd><span class="ld">Space</span> ml</kbd></td><td class="mode">n</td><td>全ブックマークを一覧(Telescope)</td></tr>
+          <tr><td class="keys"><kbd>ml</kbd></td><td class="mode">n</td><td>全ブックマークをquickfixに一覧</td></tr>
+          <tr><td class="keys"><kbd>mc</kbd> / <kbd><span class="ld">Space</span> mc</kbd></td><td class="mode">n</td><td>このファイルのブックマークを消す</td></tr>
+          <tr><td class="keys"><kbd>mx</kbd> / <kbd><span class="ld">Space</span> mx</kbd></td><td class="mode">n</td><td>全ブックマークを消す</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">メモの先頭を <code>@t</code> <code>@w</code> <code>@f</code> <code>@n</code> にするとTODO/WARN/FIX/NOTEのアイコンになる。Vim標準のマーク <code>m{a-z}</code> のうち <code>mm</code> <code>mi</code> <code>mn</code> <code>mp</code> <code>ml</code> <code>mc</code> <code>mx</code> はブックマーク操作に置き換わっている。</p>
+    </section>
+
+    <section id="panels">
+      <h2>画面ごとのキー</h2>
+
+      <h3>Telescope(検索画面)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>Ctrl-j</kbd> <kbd>Ctrl-k</kbd></td><td class="mode">i</td><td>次/前の候補</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-q</kbd></td><td class="mode">i</td><td>選んだ候補(<kbd>Tab</kbd>で複数選択)をquickfixに送って開く</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-d</kbd> <kbd>Ctrl-u</kbd></td><td class="mode">i n</td><td>候補の一覧をスクロール</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-f</kbd> <kbd>Ctrl-b</kbd></td><td class="mode">i n</td><td>プレビューをスクロール</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>buffer_manager(<kbd><span class="ld">Space</span> d</kbd>)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>1</kbd>〜<kbd>0</kbd></td><td class="mode">n</td><td>その番号のバッファを開く</td></tr>
+          <tr><td class="keys"><kbd>Enter</kbd></td><td class="mode">n</td><td>カーソル行のバッファを開く</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-v</kbd> / <kbd>Ctrl-h</kbd></td><td class="mode">n</td><td>縦 / 横に分割して開く</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-x</kbd></td><td class="mode">n</td><td>バッファを閉じる</td></tr>
+          <tr><td class="keys"><kbd>J</kbd> <kbd>K</kbd></td><td class="mode">v</td><td>選んだ行を下/上に移動して並べ替える</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>nvim-tree(ファイルツリー)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>キー</th><th>モード</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><kbd>Enter</kbd> / <kbd>o</kbd></td><td class="mode">n</td><td>開く(フォルダは開閉)</td></tr>
+          <tr><td class="keys"><kbd>Ctrl-v</kbd> / <kbd>Ctrl-h</kbd></td><td class="mode">n</td><td>縦 / 横に分割して開く</td></tr>
+          <tr><td class="keys"><kbd>a</kbd></td><td class="mode">n</td><td>ファイル/フォルダを作る(末尾を<code>/</code>にするとフォルダ)</td></tr>
+          <tr><td class="keys"><kbd>r</kbd> / <kbd>d</kbd></td><td class="mode">n</td><td>リネーム / 削除</td></tr>
+          <tr><td class="keys"><kbd>x</kbd> <kbd>c</kbd> <kbd>p</kbd></td><td class="mode">n</td><td>切り取り / コピー / 貼り付け</td></tr>
+          <tr><td class="keys"><kbd>H</kbd> / <kbd>I</kbd></td><td class="mode">n</td><td>隠しファイル / gitignore対象の表示を切り替え</td></tr>
+          <tr><td class="keys"><kbd>g?</kbd></td><td class="mode">n</td><td>ツリーのキー一覧</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">DiffviewやGrugFarの中でも <kbd>g?</kbd> でその画面のキー一覧が出る。</p>
+    </section>
+
+    <section id="plugins" data-static>
+      <h2>プラグイン</h2>
+      <p>lazy.nvimで管理。バージョンは <code>lazy-lock.json</code> に固定している。</p>
+
+      <h3>検索・移動</h3>
+      <dl class="plugins">
+        <dt>telescope.nvim</dt><dd>ファイル・文字列・履歴・LSPの結果などをあいまい検索する画面。fzf-nativeで高速化、ui-selectで選択画面にも使う</dd>
+        <dt>nvim-tree.lua</dt><dd>ファイルツリー</dd>
+        <dt>buffer_manager.nvim</dt><dd>開いているバッファの一覧と並べ替え</dd>
+        <dt>grug-far.nvim</dt><dd>プロジェクト全体の検索・置換</dd>
+        <dt>nvim-hlslens</dt><dd>検索の一致件数を表示</dd>
+        <dt>aerial.nvim</dt><dd>関数・クラスのアウトライン</dd>
+        <dt>dropbar.nvim</dt><dd>画面上部のパンくずリスト</dd>
+        <dt>vim-tmux-navigator</dt><dd>nvimの分割とtmuxのペインを同じキーで移動</dd>
+        <dt>bookmarks.nvim</dt><dd>メモ付きのブックマーク</dd>
+      </dl>
+
+      <h3>コード</h3>
+      <dl class="plugins">
+        <dt>nvim-lspconfig</dt><dd>各言語のLSPの既定設定。<code>vim.lsp.config</code> で上書きしている</dd>
+        <dt>mason.nvim</dt><dd>LSP・formatter・linterのインストール(<code>:Mason</code>)</dd>
+        <dt>blink.cmp</dt><dd>補完。スニペットはLuaSnip + friendly-snippets</dd>
+        <dt>conform.nvim</dt><dd>整形(formatter)</dd>
+        <dt>nvim-lint</dt><dd>lint(保存時などに自動実行)</dd>
+        <dt>nvim-treesitter</dt><dd>構文解析のパーサー管理。ハイライト・インデント・選択範囲の拡大に使う</dd>
+        <dt>nvim-treesitter-context</dt><dd>今の関数名などを上部に固定表示(既定はオフ)</dd>
+        <dt>refactoring.nvim</dt><dd>変数・関数の抽出、デバッグprint</dd>
+        <dt>trouble.nvim</dt><dd>診断・quickfixなどの一覧</dd>
+        <dt>vim-illuminate</dt><dd>カーソル下の単語の他の出現箇所を強調</dd>
+        <dt>lazydev.nvim</dt><dd>nvim設定のLuaでNeovim APIを補完</dd>
+        <dt>todo-comments.nvim</dt><dd>TODO/FIXMEなどのコメントを強調・一覧</dd>
+        <dt>markdown-preview.nvim</dt><dd>Markdownをブラウザでプレビュー</dd>
+      </dl>
+
+      <h3>編集</h3>
+      <dl class="plugins">
+        <dt>nvim-surround</dt><dd>括弧・引用符で囲む/外す/変える</dd>
+        <dt>substitute.nvim</dt><dd>範囲をレジスタの内容で置き換える</dd>
+        <dt>nvim-autopairs</dt><dd>括弧・引用符を自動で閉じる</dd>
+        <dt>nvim-ts-autotag</dt><dd>HTML/JSXのタグを自動で閉じる・リネーム</dd>
+        <dt>nvim-ts-context-commentstring</dt><dd>標準の<code>gc</code>でtsxなどの位置に応じたコメント書式を使う</dd>
+      </dl>
+
+      <h3>Git</h3>
+      <dl class="plugins">
+        <dt>gitsigns.nvim</dt><dd>変更箇所の表示、hunkのステージ・取り消し、行のblame</dd>
+        <dt>diffview.nvim</dt><dd>差分とファイル履歴の表示</dd>
+        <dt>gitgraph.nvim</dt><dd>コミットグラフ</dd>
+        <dt>gitlinker.nvim</dt><dd>GitHubのリンクをコピー</dd>
+      </dl>
+
+      <h3>見た目・画面</h3>
+      <dl class="plugins">
+        <dt>nightfox.nvim</dt><dd>使っているカラースキーム。tokyonight / kanagawa / everforest / nord / vscode / oxocarbon も入っている(<code>:colorscheme</code>で切り替え)</dd>
+        <dt>lualine.nvim</dt><dd>ステータスライン</dd>
+        <dt>alpha-nvim</dt><dd>起動時のダッシュボード</dd>
+        <dt>which-key.nvim</dt><dd>押しかけのキーの続きを表示</dd>
+        <dt>indent-blankline.nvim</dt><dd>インデントのガイド線</dd>
+        <dt>nvim-scrollbar</dt><dd>スクロールバーに検索・診断・Gitの位置を表示</dd>
+        <dt>neoscroll.nvim</dt><dd>なめらかなスクロール</dd>
+        <dt>zen-mode.nvim / twilight.nvim</dt><dd>集中表示 / 今のブロック以外を暗くする</dd>
+        <dt>vim-maximizer</dt><dd>分割の最大化</dd>
+        <dt>quicker.nvim</dt><dd>quickfixを見やすくし、編集できるようにする</dd>
+        <dt>auto-session</dt><dd>ディレクトリごとのセッションの自動保存・復元</dd>
+      </dl>
+    </section>
+
+    <section id="tools" data-static>
+      <h2>言語ツール</h2>
+      <p>masonで自動インストールされる。読むだけの言語も多いのでLSPは幅広く入れている。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>種類</th><th>ツール</th></tr></thead>
+        <tbody>
+          <tr><td class="keys">LSP</td><td>ansiblels, bashls, clangd, cmake, docker_compose_language_service, dockerls, gopls, html, jsonls, lua_ls, nginx_language_server, pyright, ruff, rust_analyzer, sqls, terraformls, tflint, ts_ls</td></tr>
+          <tr><td class="keys">整形</td><td>prettier(js/ts/css/html/json/yaml/markdown)、stylua(lua)、ruff(python)、xmlformatter(xml)。shellはbashls経由でshfmt。対応formatterが無ければLSPで整形</td></tr>
+          <tr><td class="keys">lint</td><td>eslint_d(js/ts)、markdownlint(markdown)、shellcheck(bashls経由)、ruff(LSPとして)</td></tr>
+          <tr><td class="keys">パーサー</td><td>bash, c, cpp, cmake, css, dockerfile, go, gomod, groovy, gitignore, html, json, javascript, jsdoc, jinja, julia, java, lua, make, markdown, markdown_inline, nginx, python, query, rust, sql, terraform, typescript, tsx, vim, vimdoc, yaml</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">PythonはpyrightとruffをGitのルート基準で動かし、ホバーはpyrightに任せている。Javaは使わない(IntelliJを使う)。</p>
+    </section>
+
+    <section id="files-layout" data-static>
+      <h2>設定ファイル構成</h2>
+      <p><code>~/.config/nvim</code> は <code>~/dotfiles/nvim</code> へのシンボリックリンク。</p>
+<pre class="tree">nvim/
+├── init.lua                 <span class="c">core → lazy の順に読み込む</span>
+├── lazy-lock.json           <span class="c">プラグインのバージョン固定</span>
+├── manual/index.html        <span class="c">このマニュアル</span>
+└── lua/yyossy/
+    ├── core/
+    │   ├── options.lua      <span class="c">エディタの基本設定</span>
+    │   └── keymaps.lua      <span class="c">プラグインに依らないキー、:NvimManual</span>
+    ├── lazy.lua             <span class="c">lazy.nvimの起動とプラグインの読み込み</span>
+    ├── lsp_keymaps.lua      <span class="c">LSPが動いたバッファに付けるキー</span>
+    └── plugins/
+        ├── *.lua            <span class="c">1ファイル1プラグイン(見た目・検索・編集など)</span>
+        ├── git/             <span class="c">gitsigns, diffview, gitgraph</span>
+        └── lsp/             <span class="c">LSP・補完・整形・lint・treesitter・リファクタ</span></pre>
+      <p class="note">which-keyのグループ名は <code>plugins/which-key.lua</code>、キーの <code>desc</code> は各プラグインのファイルに書いている。</p>
+    </section>
+
+    <section id="maintenance" data-static>
+      <h2>メンテナンス</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>コマンド</th><th>できること</th></tr></thead>
+        <tbody>
+          <tr><td class="keys"><code>:Lazy</code></td><td>プラグインの一覧と更新。<code>:Lazy restore</code> で <code>lazy-lock.json</code> の版に揃える</td></tr>
+          <tr><td class="keys"><code>:Mason</code></td><td>LSP・formatter・linterの状態確認とインストール</td></tr>
+          <tr><td class="keys"><code>:TSUpdate</code></td><td>treesitterのパーサーを更新(<code>tree-sitter-cli</code> が必要)</td></tr>
+          <tr><td class="keys"><code>:checkhealth</code></td><td>設定の診断。<code>:checkhealth vim.lsp</code> でLSPの状態、<code>vim.deprecated</code> で非推奨APIの使用箇所</td></tr>
+          <tr><td class="keys"><code>:ConformInfo</code></td><td>今のバッファで使うformatter</td></tr>
+          <tr><td class="keys"><code>:NvimManual</code></td><td>このマニュアルを開く</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">
+        新しいMacでは <code>setup.sh</code> がneovimとtree-sitter-cliを入れる。その後nvimを起動すれば、プラグイン・LSP・パーサーが自動で入る。
+        GitHub Actionsでstylua、shellcheck、起動のスモークテストを実行している。
+        キーマップやプラグインを変えたら、このマニュアルも更新する。
+      </p>
+    </section>
+
+    <p class="empty" id="empty">一致するキーがありません。別の言葉で探すか、nvimで <kbd><span class="ld">Space</span> ?</kbd> を使ってください。</p>
+
+    <footer>yyossy/dotfiles · nvim/manual/index.html · <a href="https://claude.ai/artifact/PnHDKnAKCa9HUsZ7882tjb">Artifact版</a></footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById("q");
+  var count = document.getElementById("count");
+  var empty = document.getElementById("empty");
+  var main = document.getElementById("main");
+  var sections = Array.prototype.slice.call(document.querySelectorAll("main section"));
+
+  function normalize(s) {
+    return s.toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function filter() {
+    var q = normalize(input.value.trim());
+    var shown = 0;
+    main.classList.toggle("searching", q !== "");
+    sections.forEach(function (sec) {
+      var rows = sec.querySelectorAll("tbody tr");
+      var visible = 0;
+      rows.forEach(function (tr) {
+        var hit = q === "" || normalize(tr.textContent).indexOf(q) !== -1;
+        tr.hidden = !hit;
+        if (hit) visible++;
+      });
+      // キー表を持たない説明のセクションは検索中は隠す
+      var isStatic = sec.hasAttribute("data-static");
+      sec.hidden = q !== "" && (isStatic ? normalize(sec.textContent).indexOf(q) === -1 : visible === 0);
+      if (!isStatic) shown += visible;
+    });
+    count.textContent = q === "" ? "" : shown + "件";
+    empty.classList.toggle("show", q !== "" && shown === 0 && sections.every(function (s) { return s.hidden; }));
+  }
+
+  input.addEventListener("input", filter);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement !== input) {
+      e.preventDefault();
+      input.focus();
+    } else if (e.key === "Escape" && document.activeElement === input) {
+      input.value = "";
+      filter();
+      input.blur();
+    }
+  });
+})();
+</script>
+</body>
+</html>

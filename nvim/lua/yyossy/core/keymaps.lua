@@ -62,3 +62,9 @@ keymap.set("n", "<leader>u", function()
     vim.api.nvim_feedkeys("q:", "n", false)
   end
 end, { desc = "Toggle Command-Line Window" })
+
+-- マニュアル(nvim/manual/index.html)をブラウザで開く
+vim.api.nvim_create_user_command("NvimManual", function()
+  vim.ui.open(vim.fn.stdpath("config") .. "/manual/index.html")
+end, { desc = "Open nvim manual in browser" })
+keymap.set("n", "<leader>H", "<cmd>NvimManual<CR>", { desc = "Open nvim manual" })
