@@ -93,7 +93,8 @@ install_brew() {
   while read -r pkg; do
     if ! brew list "$pkg" &>/dev/null; then
       log "Installing $pkg via Homebrew"
-      brew install "$pkg" 2>&1 | tee -a "$LOG_FILE"
+      # brewが標準入力(このループのパッケージ一覧)を読んで消費しないようにする
+      brew install "$pkg" </dev/null 2>&1 | tee -a "$LOG_FILE"
     else
       log "$pkg already installed, skipping"
     fi
