@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-DOTFILES_DIR="$HOME/dotfiles"
+# リポジトリの場所はこのスクリプトの位置から決める(~/dotfiles以外にcloneしても動くように)
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_TIMESTAMP="${LOG_TIMESTAMP:-$(date +%Y%m%d-%H%M%S)}"
 LOG_FILE="$DOTFILES_DIR/setup-$LOG_TIMESTAMP.log"
 BACKUP_SUFFIX=".bak.$LOG_TIMESTAMP"
@@ -53,7 +54,34 @@ backup_and_copy() {
 
 install_zsh() {
   log "Setting up zsh..."
+  install_ohmyzsh
   backup_and_link "$HOME/.zshrc" "$DOTFILES_DIR/zsh/.zshrc"
+}
+
+# .zshrcが使うoh-my-zshと、標準に含まれないプラグインを入れる
+install_ohmyzsh() {
+  local zsh_dir="$HOME/.oh-my-zsh"
+
+  if [ -d "$zsh_dir" ]; then
+    log "oh-my-zsh already installed, skipping"
+  else
+    log "Installing oh-my-zsh..."
+    # 既存の.zshrcを残し、インストール後にzshを起動しない
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
+      "" --unattended 2>&1 | tee -a "$LOG_FILE"
+  fi
+
+  local plugin_dir="$zsh_dir/custom/plugins"
+  for repo in zsh-users/zsh-autosuggestions zsh-users/zsh-syntax-highlighting; do
+    local dir="$plugin_dir/${repo#*/}"
+    if [ -d "$dir" ]; then
+      log "${repo#*/} already installed, skipping"
+    else
+      log "Installing ${repo#*/}..."
+      git clone --depth 1 "https://github.com/$repo" "$dir" 2>&1 | tee -a "$LOG_FILE"
+    fi
+  done
 }
 
 install_nvim() {
@@ -92,29 +120,36 @@ install_brew() {
   while read -r pkg; do
     if ! brew list "$pkg" &>/dev/null; then
       log "Installing $pkg via Homebrew"
-      brew install "$pkg" 2>&1 | tee -a "$LOG_FILE"
+      # brewが標準入力(このループのパッケージ一覧)を読んで消費しないようにする
+      brew install "$pkg" </dev/null 2>&1 | tee -a "$LOG_FILE"
     else
       log "$pkg already installed, skipping"
     fi
   done <<EOF
 aqua
+autojump
 cmake
 curl
 font-hack-nerd-font
+fzf
 gcc
 git
 git-delta
 gh
+go
 lua
 neovim
 node
 openjdk@21
+pyenv
+pyenv-virtualenv
 ripgrep
 sshs
 terminal-notifier
 tmux
 tree
 tree-sitter-cli
+uv
 EOF
 }
 

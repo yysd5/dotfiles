@@ -1,0 +1,89 @@
+name: setup
+
+# 新しいMacで make all が最後まで通るかを確認する
+on:
+  pull_request:
+    paths:
+      - "setup.sh"
+      - "Makefile"
+      - "aqua/**"
+      - "npm/**"
+      - ".github/workflows/setup.yml"
+  push:
+    branches: [main]
+    paths:
+      - "setup.sh"
+      - "Makefile"
+      - "aqua/**"
+      - "npm/**"
+      - ".github/workflows/setup.yml"
+  schedule:
+    # 毎週月曜 9:00 JST(brewやaquaのパッケージ側の変化で壊れていないか見る)
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  make-all:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # 実際の使い方と同じく ~/dotfiles に置く(.zshrcが ~/dotfiles を参照している)
+      - name: Place repository at ~/dotfiles
+        run: ln -s "$GITHUB_WORKSPACE" ~/dotfiles
+
+      - name: make all
+        run: cd ~/dotfiles && make all
+
+      - name: Check symlinks
+        run: |
+          for path in ~/.zshrc ~/.config/nvim ~/.tmux.conf ~/.gitconfig \
+            "$HOME/Library/Application Support/lazygit/config.yml" \
+            "$HOME/Library/Application Support/com.mitchellh.ghostty/config"; do
+            if [ ! -L "$path" ] || [ ! -e "$path" ]; then
+              echo "::error::not linked: $path"
+              exit 1
+            fi
+            echo "ok: $path -> $(readlink "$path")"
+          done
+
+      - name: Check commands
+        run: |
+          for cmd in git gh go nvim rg tmux tree-sitter delta node aqua; do
+            if ! command -v "$cmd" >/dev/null; then
+              echo "::error::command not found: $cmd"
+              exit 1
+            fi
+            echo "ok: $cmd"
+          done
+
+      # .zshrcがエラーなく読み込めるか(echo以外に何か出力されたら失敗にする)
+      # 端末が無いとzleを使うプラグインがエラーを出すので、scriptで疑似端末を付ける
+      - name: Start zsh
+        env:
+          DISABLE_AUTO_UPDATE: "true" # oh-my-zshの更新確認を出さない
+        run: |
+          # scriptが出す ^D とバックスペース、空行は除く
+          out=$(script -q /dev/null zsh -i -c 'echo zsh started' </dev/null 2>&1 \
+            | tr -d '\r\b' | sed 's/\^D//g' | sed '/^$/d')
+          echo "$out"
+          if [ "$out" != "zsh started" ]; then
+            echo "::error::zsh printed errors on startup"
+            exit 1
+          fi
+
+      - name: Upload setup log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup-log
+          path: setup-*.log
+          if-no-files-found: ignore
