@@ -54,7 +54,34 @@ backup_and_copy() {
 
 install_zsh() {
   log "Setting up zsh..."
+  install_ohmyzsh
   backup_and_link "$HOME/.zshrc" "$DOTFILES_DIR/zsh/.zshrc"
+}
+
+# .zshrcが使うoh-my-zshと、標準に含まれないプラグインを入れる
+install_ohmyzsh() {
+  local zsh_dir="$HOME/.oh-my-zsh"
+
+  if [ -d "$zsh_dir" ]; then
+    log "oh-my-zsh already installed, skipping"
+  else
+    log "Installing oh-my-zsh..."
+    # 既存の.zshrcを残し、インストール後にzshを起動しない
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
+      "" --unattended 2>&1 | tee -a "$LOG_FILE"
+  fi
+
+  local plugin_dir="$zsh_dir/custom/plugins"
+  for repo in zsh-users/zsh-autosuggestions zsh-users/zsh-syntax-highlighting; do
+    local dir="$plugin_dir/${repo#*/}"
+    if [ -d "$dir" ]; then
+      log "${repo#*/} already installed, skipping"
+    else
+      log "Installing ${repo#*/}..."
+      git clone --depth 1 "https://github.com/$repo" "$dir" 2>&1 | tee -a "$LOG_FILE"
+    fi
+  done
 }
 
 install_nvim() {
@@ -100,6 +127,7 @@ install_brew() {
     fi
   done <<EOF
 aqua
+autojump
 cmake
 curl
 font-hack-nerd-font
@@ -112,12 +140,15 @@ lua
 neovim
 node
 openjdk@21
+pyenv
+pyenv-virtualenv
 ripgrep
 sshs
 terminal-notifier
 tmux
 tree
 tree-sitter-cli
+uv
 EOF
 }
 
