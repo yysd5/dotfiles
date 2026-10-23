@@ -27,13 +27,13 @@ function M.setup_lsp_keymaps(bufnr)
   vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 
   opts.desc = "Smart rename"
-  vim.keymap.set("n", "<leader>sr", vim.lsp.buf.rename, opts)
+  vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, opts)
 
   opts.desc = "Show line diagnostics"
-  vim.keymap.set("n", "<leader>b", vim.diagnostic.open_float, opts)
+  vim.keymap.set("n", "<leader>cd", vim.diagnostic.open_float, opts)
 
   opts.desc = "Show buffer diagnostics"
-  vim.keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
+  vim.keymap.set("n", "<leader>cD", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
 
   opts.desc = "Go to previous diagnostic"
   vim.keymap.set("n", "[d", function()
@@ -51,7 +51,7 @@ function M.setup_lsp_keymaps(bufnr)
   end, opts)
 
   opts.desc = "Restart LSP"
-  vim.keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts)
+  vim.keymap.set("n", "<leader>cR", "<cmd>LspRestart<CR>", opts)
 end
 
 return M

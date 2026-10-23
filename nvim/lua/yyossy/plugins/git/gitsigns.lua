@@ -11,11 +11,16 @@ return {
       end
 
       -- Navigation
-      map("n", "]h", gs.next_hunk, "Next Hunk")
-      map("n", "[h", gs.prev_hunk, "Prev Hunk")
+      map("n", "]h", function()
+        gs.nav_hunk("next")
+      end, "Next Hunk")
+      map("n", "[h", function()
+        gs.nav_hunk("prev")
+      end, "Prev Hunk")
 
       -- Actions
-      map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
+      -- ステージ済みのhunkで実行するとステージを取り消す
+      map("n", "<leader>hs", gs.stage_hunk, "Stage/unstage hunk")
       map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
       map("v", "<leader>hs", function()
         gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
@@ -27,8 +32,6 @@ return {
       map("n", "<leader>hS", gs.stage_buffer, "Stage buffer")
       map("n", "<leader>hR", gs.reset_buffer, "Reset buffer")
 
-      map("n", "<leader>hu", gs.undo_stage_hunk, "Undo stage hunk")
-
       map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
 
       map("n", "<leader>hb", function()
@@ -38,8 +41,8 @@ return {
 
       map("n", "<leader>hQ", function()
         gs.setqflist("all")
-      end)
-      map("n", "<leader>hq", gs.setqflist)
+      end, "Hunks of all files to quickfix")
+      map("n", "<leader>hq", gs.setqflist, "Hunks of buffer to quickfix")
 
       map("n", "<leader>hd", gs.diffthis, "Diff this")
       -- map("n", "<leader>hd", function()

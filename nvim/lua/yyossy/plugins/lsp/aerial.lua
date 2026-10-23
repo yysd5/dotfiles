@@ -52,6 +52,6 @@ return {
       -- end,
     })
     -- You probably also want to set a keymap to toggle aerial
-    vim.keymap.set("n", "<leader>v", "<cmd>AerialToggle!<CR>")
+    vim.keymap.set("n", "<leader>co", "<cmd>AerialToggle!<CR>", { desc = "Toggle outline (aerial)" })
   end,
 }

@@ -10,6 +10,6 @@ return {
     vim.g.mkdp_auto_close = 0 -- Keep browser preiview tab open when closing markdown buffer
   end,
   keys = {
-    { "<leader>mk", "<cmd>MarkdownPreviewToggle<CR>", ft = "markdown", desc = "Markdown Preview Toggle" },
+    { "<leader>cp", "<cmd>MarkdownPreviewToggle<CR>", ft = "markdown", desc = "Markdown Preview Toggle" },
   },
 }
