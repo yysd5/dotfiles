@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-DOTFILES_DIR="$HOME/dotfiles"
+# リポジトリの場所はこのスクリプトの位置から決める(~/dotfiles以外にcloneしても動くように)
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_TIMESTAMP="${LOG_TIMESTAMP:-$(date +%Y%m%d-%H%M%S)}"
 LOG_FILE="$DOTFILES_DIR/setup-$LOG_TIMESTAMP.log"
 BACKUP_SUFFIX=".bak.$LOG_TIMESTAMP"
