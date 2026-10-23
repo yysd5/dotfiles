@@ -165,7 +165,8 @@ eval "$(pyenv virtualenv-init -)"
 # Created by `pipx` on 2023-12-22 16:34:10
 export PATH="$PATH:$HOME/.local/bin"
 # START: Added by Updated Airflow Breeze autocomplete setup
-source "$HOME/Projects/airflow/dev/breeze/autocomplete/breeze-complete-zsh.sh"
+[ -f "$HOME/Projects/airflow/dev/breeze/autocomplete/breeze-complete-zsh.sh" ] && \
+  source "$HOME/Projects/airflow/dev/breeze/autocomplete/breeze-complete-zsh.sh"
 # END: Added by Updated Airflow Breeze autocomplete setup
 
 # uv
