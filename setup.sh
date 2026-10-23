@@ -106,6 +106,7 @@ gcc
 git
 git-delta
 gh
+go
 lua
 neovim
 node
