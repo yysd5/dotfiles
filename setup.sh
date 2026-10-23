@@ -131,6 +131,7 @@ autojump
 cmake
 curl
 font-hack-nerd-font
+fzf
 gcc
 git
 git-delta
