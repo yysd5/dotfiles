@@ -12,7 +12,7 @@ return {
       },
       line_keys = "1234567890",
       focus_alternate_buffer = false,
-      width = 150,
+      width = 0.9, -- 画面幅の割合(固定列数だと狭い画面ではみ出す)
       height = 30,
       short_file_names = false,
       show_depth = true,
