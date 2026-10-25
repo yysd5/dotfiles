@@ -96,7 +96,9 @@ return {
         "tflint", -- terraform linter
         "ts_ls", -- javascript/typescript
       },
-      automatic_enable = true,
+      -- styluaは整形用(conform)に入れているだけなのでLSPとしては起動しない
+      -- (nvim-lspconfigにstyluaのLSP設定があり、自動で有効にされてしまう)
+      automatic_enable = { exclude = { "stylua" } },
     })
   end,
 }
