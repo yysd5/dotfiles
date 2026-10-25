@@ -66,7 +66,7 @@ claude code
 
 ```bash
 cd
-git clone git@github.com:yyossy5/dotfiles.git
+git clone git@github.com:yysd5/dotfiles.git
 cd dotfiles
 ```
 
