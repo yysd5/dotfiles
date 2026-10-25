@@ -1,3 +1,3 @@
 # IntelliJ IDEA プラグインリスト
 
-- https://github.com/yyossy5/dotfiles/issues/369
+- https://github.com/yysd5/dotfiles/issues/369

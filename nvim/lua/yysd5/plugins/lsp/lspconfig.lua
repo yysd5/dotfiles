@@ -67,7 +67,7 @@ return {
         if client and client.name == "ruff" then
           client.server_capabilities.hoverProvider = false
         end
-        require("yyossy.lsp_keymaps").setup_lsp_keymaps(ev.buf)
+        require("yysd5.lsp_keymaps").setup_lsp_keymaps(ev.buf)
       end,
     })
 

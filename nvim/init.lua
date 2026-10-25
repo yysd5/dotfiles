@@ -1,2 +1,2 @@
-require("yyossy.core")
-require("yyossy.lazy")
+require("yysd5.core")
+require("yysd5.lazy")
