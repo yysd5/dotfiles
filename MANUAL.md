@@ -117,3 +117,28 @@
 - ✅️connpass
 - ✅️Qiita
 - ✅️OpenAI
+
+# 脆弱性対応
+
+各Macで手作業が要る対応の記録。`setup.sh`は入っているパッケージを更新しないので、
+既存のMacではここの手順を手で実施する。
+
+## HTTP2Shell(CVE-2026-111497、2026-10)
+
+Brotliデコーダ(1.0.3〜1.2.0)の範囲外書き込み。`Content-Encoding: br`を展開する
+Node.js・Bun・Python(PyPIの`brotli`/`brotlicffi`)などが影響を受ける。
+
+- ✅️(個人Mac)Homebrewの`brotli`を1.2.1以上にする
+  - `HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew upgrade brotli`
+  - Homebrewの`node`と`curl`は`brotli`を動的リンクしているので、これで直る
+    - `/opt/homebrew/bin/node -p process.versions.brotli`が`1.2.1`になれば良い
+  - 環境変数を付けないと、依存する`node`もメジャーバージョンが上がることがある
+- ✅️(個人Mac)nvmのnodeを修正版(26.12.1/24.22.1/22.23.4以上)にする
+  - `nvm install 24.22.1 && nvm alias default 24.22.1`
+  - 20.x以前と25.xはEOLで修正版が無いので`nvm uninstall`する
+  - グローバルnpmパッケージはバージョンごとなので、`npm/packages.txt`を見て入れ直す
+  - nvmのnodeは`process.versions.brotli`が`1.2.0`のままなので、`node -v`で判断する
+- ✅️(個人Mac)PyPIの`brotli`/`brotlicffi`が1.2.1未満で入っていないか確認する
+  - `pip show brotli brotlicffi`(uvのtoolや各venvでも確認する)
+- Bunを使っているなら1.4.4以上にする(`bun --version`)
+- 会社Macでも同じ確認をする
