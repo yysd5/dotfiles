@@ -12,9 +12,9 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  { import = "yyossy.plugins" },
-  { import = "yyossy.plugins.lsp" },
-  { import = "yyossy.plugins.git" },
+  { import = "yysd5.plugins" },
+  { import = "yysd5.plugins.lsp" },
+  { import = "yysd5.plugins.git" },
 }, {
   checker = {
     enabled = true,
