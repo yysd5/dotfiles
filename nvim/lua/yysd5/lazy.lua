@@ -23,4 +23,9 @@ require("lazy").setup({
   change_detection = {
     notify = false,
   },
+  -- luarocksが必要なプラグインは無い。有効のままだとoxocarbonの
+  -- build依存(fennel)のためにhererocksが入り、lockfileが端末ごとに変わる
+  rocks = {
+    enabled = false,
+  },
 })
